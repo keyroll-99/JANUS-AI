@@ -1,0 +1,37 @@
+{
+  "name": "janus-ai-backend",
+  "version": "0.0.1",
+  "description": "backend for janus ai",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/server.ts",
+    "lint": "eslint 'src/**/*.ts'",
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+  "author": "karol kazmierczak",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^5.1.0"
+  },
+  "volta": {
+    "node": "22.20.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.3",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.8.1",
+    "dotenv": "^17.2.3",
+    "eslint": "^9.38.0",
+    "install": "^0.13.0",
+    "jest": "^30.2.0",
+    "nodemon": "^3.1.10",
+    "npm": "^11.6.2",
+    "prettier": "^3.6.2",
+    "ts-jest": "^29.4.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}

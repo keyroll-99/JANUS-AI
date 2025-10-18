@@ -1,0 +1,53 @@
+@import '../../shared/styles/variables';
+
+.header {
+  background-color: $color-background;
+  border-bottom: 1px solid $color-border;
+  padding: $spacing-md $spacing-xl;
+  box-shadow: $shadow-sm;
+
+  @media (max-width: $breakpoint-md) {
+    padding: $spacing-md;
+  }
+}
+
+.header-content {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-logo {
+  h1 {
+    color: $color-primary;
+    font-size: $font-size-2xl;
+    font-weight: 700;
+  }
+
+  &:hover {
+    text-decoration: none;
+  }
+}
+
+.header-nav {
+  display: flex;
+  gap: $spacing-lg;
+
+  a {
+    color: $color-text-secondary;
+    font-weight: 500;
+    transition: color 0.2s;
+
+    &:hover {
+      color: $color-primary;
+      text-decoration: none;
+    }
+  }
+
+  @media (max-width: $breakpoint-md) {
+    gap: $spacing-md;
+    font-size: $font-size-sm;
+  }
+}

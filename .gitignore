@@ -1,0 +1,89 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+yarn.lock
+
+# Production builds
+dist/
+build/
+out/
+*.tsbuildinfo
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+.env*.local
+
+# IDE and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.sublime-project
+*.sublime-workspace
+
+# OS files
+Thumbs.db
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Testing
+coverage/
+.nyc_output/
+*.lcov
+.jest/
+
+# Docker
+docker-compose.override.yml
+*.env.docker
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+.cache/
+
+# Backend specific
+backend/dist/
+backend/build/
+backend/uploads/
+backend/.env
+
+# Frontend specific (React)
+frontend/build/
+frontend/.next/
+frontend/out/
+frontend/.cache/
+frontend/public/static/
+frontend/.env
+
+# TypeScript
+*.tsbuildinfo
+.eslintcache
+
+# Misc
+*.pem
+.certbot/
+.well-known/
