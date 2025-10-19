@@ -6,6 +6,7 @@ import { errorHandler } from './shared/middlewares/errorHandler';
 import authRouter from './auth/auth.routes';
 import profileRouter from './profile/profile.routes';
 import transactionRouter from './transactions/transaction.routes';
+import strategyRouter from './strategies/strategies.routes';
 import config from './shared/config/config';
 
 const app = express();
@@ -30,6 +31,7 @@ app.use(cookieParser());
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/profile', profileRouter);
 app.use('/api/v1/transactions', transactionRouter);
+app.use('/api/v1/strategy', strategyRouter);
 
 // Health check endpoint
 app.get('/health', (_req, res) => {
