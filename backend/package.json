@@ -6,23 +6,34 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/server.js",
-    "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/server.ts",
+    "dev": "tsx watch src/server.ts",
+    "dev:nodemon": "nodemon --watch 'src/**/*.ts' --exec tsx src/server.ts",
     "lint": "eslint 'src/**/*.ts'",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "types:generate": "npx supabase gen types typescript --local --schema public > src/shared/config/database.types.ts"
   },
   "author": "karol kazmierczak",
   "license": "MIT",
   "dependencies": {
-    "express": "^5.1.0"
+    "@supabase/supabase-js": "^2.75.1",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.1.0",
+    "helmet": "^8.1.0",
+    "zod": "^4.1.12"
   },
   "volta": {
     "node": "22.20.0"
   },
   "devDependencies": {
+    "@types/cookie-parser": "^1.4.9",
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.8.1",
+    "@types/supertest": "^6.0.3",
     "dotenv": "^17.2.3",
     "eslint": "^9.38.0",
     "install": "^0.13.0",
@@ -31,8 +42,10 @@
     "npm": "^11.6.2",
     "prettier": "^3.6.2",
     "supabase": "^2.51.0",
+    "supertest": "^7.1.4",
     "ts-jest": "^29.4.5",
     "ts-node": "^10.9.2",
+    "tsx": "^4.20.6",
     "typescript": "^5.9.3"
   }
 }
