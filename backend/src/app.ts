@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser';
 import { errorHandler } from './shared/middlewares/errorHandler';
 import authRouter from './auth/auth.routes';
 import profileRouter from './profile/profile.routes';
+import transactionRouter from './transactions/transaction.routes';
 import config from './shared/config/config';
 
 const app = express();
@@ -28,6 +29,7 @@ app.use(cookieParser());
 // API routes
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/profile', profileRouter);
+app.use('/api/v1/transactions', transactionRouter);
 
 // Health check endpoint
 app.get('/health', (_req, res) => {
