@@ -87,3 +87,5 @@ frontend/.env
 *.pem
 .certbot/
 .well-known/
+
+

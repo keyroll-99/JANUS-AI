@@ -18,6 +18,7 @@ Janus AI to monorepo zawierające aplikację webową z responsywnym widokiem mob
   - Obsługa ACID dla transakcji finansowych
   - Świetna skalowalność
   - Mature security features
+  - Uzycie supabase
 
 ### Kluczowe biblioteki
 
