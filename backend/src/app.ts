@@ -8,7 +8,12 @@ import profileRouter from './profile/profile.routes';
 import transactionRouter from './transactions/transaction.routes';
 import strategyRouter from './strategies/strategies.routes';
 import portfolioRouter from './portfolios/portfolios.routes';
+import analysisRouter from './ai-analysis/analysis.routes';
 import config from './shared/config/config';
+import { initializeAIProviders } from './ai-analysis/providers';
+
+// Initialize AI providers
+initializeAIProviders();
 
 const app = express();
 
@@ -34,6 +39,7 @@ app.use('/api/v1/profile', profileRouter);
 app.use('/api/v1/transactions', transactionRouter);
 app.use('/api/v1/strategy', strategyRouter);
 app.use('/api/v1/dashboard', portfolioRouter);
+app.use('/api/v1/analyses', analysisRouter);
 
 // Health check endpoint
 app.get('/health', (_req, res) => {
