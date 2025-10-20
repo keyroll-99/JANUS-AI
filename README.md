@@ -34,9 +34,9 @@ Managing an investment portfolio, often scattered across different accounts (mai
 
 ### Backend
 - **Framework**: Express.js
-- **Database**: PostgreSQL
+- **Database**: Supabase (PostgreSQL)
 - **Language**: TypeScript
-- **Key Libraries**: Passport-JWT (auth), Multer (file upload), Zod (validation), @anthropic-ai/sdk
+- **Key Libraries**: @supabase/supabase-js (auth & database), Multer (file upload), Zod (validation), ExcelJS (Excel parsing)
 
 ### Frontend
 - **Framework**: React 19
@@ -57,10 +57,19 @@ The project is organized as a monorepo with a clear separation between backend a
 janus-ai/
 ├── backend/
 │   ├── src/
-│   │   ├── domains/          # Business Logic (DDD)
+│   │   ├── ai-analysis/      # AI Analysis Domain
+│   │   ├── auth/             # Authentication Domain
+│   │   ├── imports/          # Data Import Domain
+│   │   ├── portfolios/       # Portfolio Management Domain
+│   │   ├── profile/          # User Profile Domain
+│   │   ├── strategies/       # Investment Strategies Domain
+│   │   ├── transactions/     # Transaction Management Domain
 │   │   ├── shared/           # Shared Modules
+│   │   ├── scripts/          # Utility Scripts
 │   │   ├── app.ts            # Main Express App
 │   │   └── server.ts         # Server Initialization
+│   ├── supabase/             # Database Migrations & Config
+│   ├── tests/                # Test Files
 │   └── package.json
 │
 ├── frontend/
@@ -73,15 +82,15 @@ janus-ai/
 │   └── package.json
 │
 └── .github/
-    └── workflows/            # CI/CD Automation
+    └── copilot-instructions.md # AI Coding Guidelines
 ```
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js (version from `.nvmrc` recommended)
+- Node.js (version specified in package.json - Volta recommended)
 - Docker and Docker Compose
-- Access to a PostgreSQL instance
+- Access to a Supabase instance
 
 ### 1. Clone the Repository
 ```bash
@@ -177,9 +186,9 @@ Zarządzanie portfelem inwestycyjnym, często rozproszonym między różne konta
 
 ### Backend
 - **Framework**: Express.js
-- **Baza Danych**: PostgreSQL
+- **Baza Danych**: Supabase (PostgreSQL)
 - **Język**: TypeScript
-- **Kluczowe Biblioteki**: Passport-JWT (auth), Multer (file upload), Zod (walidacja), @anthropic-ai/sdk
+- **Kluczowe Biblioteki**: @supabase/supabase-js (auth & database), Multer (file upload), Zod (walidacja), ExcelJS (parsowanie Excel)
 
 ### Frontend
 - **Framework**: React 19
@@ -200,10 +209,19 @@ Projekt jest zorganizowany jako monorepo z wyraźnym podziałem na backend i fro
 janus-ai/
 ├── backend/
 │   ├── src/
-│   │   ├── domains/          # Logika biznesowa (DDD)
+│   │   ├── ai-analysis/      # Domena Analizy AI
+│   │   ├── auth/             # Domena Autentyfikacji
+│   │   ├── imports/          # Domena Importu Danych
+│   │   ├── portfolios/       # Domena Zarządzania Portfelem
+│   │   ├── profile/          # Domena Profilu Użytkownika
+│   │   ├── strategies/       # Domena Strategii Inwestycyjnych
+│   │   ├── transactions/     # Domena Zarządzania Transakcjami
 │   │   ├── shared/           # Współdzielone moduły
+│   │   ├── scripts/          # Skrypty narzędziowe
 │   │   ├── app.ts            # Główna aplikacja Express
 │   │   └── server.ts         # Inicjalizacja serwera
+│   ├── supabase/             # Migracje i Konfiguracja Bazy Danych
+│   ├── tests/                # Pliki testów
 │   └── package.json
 │
 ├── frontend/
@@ -216,15 +234,15 @@ janus-ai/
 │   └── package.json
 │
 └── .github/
-    └── workflows/            # Automatyzacja CI/CD
+    └── copilot-instructions.md # Wytyczne Kodowania AI
 ```
 
 ## � Jak zacząć?
 
 ### Wymagania
-- Node.js (zalecana wersja z `.nvmrc`)
+- Node.js (wersja określona w package.json - zalecane Volta)
 - Docker i Docker Compose
-- Dostęp do instancji PostgreSQL
+- Dostęp do instancji Supabase
 
 ### 1. Klonowanie Repozytorium
 ```bash
