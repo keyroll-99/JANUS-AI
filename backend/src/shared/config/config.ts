@@ -17,6 +17,10 @@ interface Config {
     sameSite: 'strict' | 'lax' | 'none';
     maxAge: number; // in milliseconds
   };
+  marketData: {
+    finnhubApiKey: string;
+    finnhubBaseUrl: string;
+  };
 }
 
 const config: Config = {
@@ -34,12 +38,23 @@ const config: Config = {
     sameSite: 'strict',
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   },
+  marketData: {
+    finnhubApiKey: process.env.FINNHUB_API_KEY || '',
+    finnhubBaseUrl: 'https://finnhub.io/api/v1',
+  },
 };
 
 // Validate required Supabase configuration
 if (!config.supabase.url || !config.supabase.anonKey) {
   throw new Error(
     'Missing required Supabase configuration. Please check your .env file.'
+  );
+}
+
+// Validate market data configuration (warning only, not blocking)
+if (!config.marketData.finnhubApiKey && config.nodeEnv === 'production') {
+  console.warn(
+    'WARNING: FINNHUB_API_KEY is not set. Market data features will use mock data.'
   );
 }
 
