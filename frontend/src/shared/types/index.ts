@@ -57,3 +57,37 @@ export interface Diversification {
   ticker: string;
   percentage: number;
 }
+
+// Dashboard types
+export interface GetDashboardResponseDto {
+  summary: DashboardSummaryDto;
+  history: PortfolioHistoryPointDto[];
+  diversification: DiversificationItemDto[];
+}
+
+export interface DashboardSummaryDto {
+  totalValue: number;
+  currency: string;
+  change: {
+    value: number;
+    percentage: number;
+  };
+}
+
+export interface PortfolioHistoryPointDto {
+  date: string; // Format: YYYY-MM-DD
+  value: number;
+}
+
+export interface DiversificationItemDto {
+  ticker: string;
+  value: number;
+  percentage: number;
+}
+
+export interface DashboardState {
+  data: GetDashboardResponseDto | null;
+  loading: boolean;
+  error: string | null;
+  refreshing: boolean;
+}

@@ -1,4 +1,4 @@
-@import '../../shared/styles/variables';
+@use '../../shared/styles/variables' as *;
 
 .header {
   background-color: $color-background;

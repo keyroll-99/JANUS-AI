@@ -7,7 +7,7 @@ export const apiClient = async <T = unknown>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> => {
-  const token = localStorage.getItem('authToken');
+  const token = localStorage.getItem('accessToken');
   
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -28,8 +28,9 @@ export const apiClient = async <T = unknown>(
 
     // Handle 401 Unauthorized
     if (response.status === 401) {
-      localStorage.removeItem('authToken');
-      window.location.href = '/login';
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('user');
+      // Nie robimy window.location.href - pozwalamy AuthContext to obsłużyć
       throw new Error('Unauthorized');
     }
 

@@ -4,24 +4,35 @@ import plPL from 'antd/locale/pl_PL';
 import RootLayout from './components/layouts/RootLayout';
 import ErrorBoundary from './components/shared/ErrorBoundary';
 import { antdTheme } from './shared/config/antd-theme';
+import { AuthProvider } from './shared/contexts/AuthContext';
 
 const router = createBrowserRouter([
+  // Strona główna - przekierowanie na dashboard lub login
+  {
+    path: '/',
+    lazy: () => import('./pages/Home'),
+    errorElement: <ErrorBoundary />,
+  },
+  // Publiczne route (auth) - bez layoutu
+  {
+    path: '/login',
+    lazy: () => import('./pages/auth/Login'),
+    errorElement: <ErrorBoundary />,
+  },
+  {
+    path: '/register',
+    lazy: () => import('./pages/auth/Register'),
+    errorElement: <ErrorBoundary />,
+  },
+  // Prywatne route - z layoutem
   {
     path: '/',
     element: <RootLayout />,
     errorElement: <ErrorBoundary />,
     children: [
       {
-        index: true,
+        path: 'dashboard',
         lazy: () => import('./pages/Dashboard'),
-      },
-      {
-        path: 'login',
-        lazy: () => import('./pages/auth/Login'),
-      },
-      {
-        path: 'register',
-        lazy: () => import('./pages/auth/Register'),
       },
       {
         path: 'onboarding',
@@ -54,9 +65,11 @@ const router = createBrowserRouter([
 
 function App() {
   return (
-    <ConfigProvider theme={antdTheme} locale={plPL}>
-      <RouterProvider router={router} />
-    </ConfigProvider>
+    <AuthProvider>
+      <ConfigProvider theme={antdTheme} locale={plPL}>
+        <RouterProvider router={router} />
+      </ConfigProvider>
+    </AuthProvider>
   );
 }
 

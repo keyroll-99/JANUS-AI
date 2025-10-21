@@ -2,7 +2,7 @@
 // Wykorzystywane do nadpisywania domyślnych stylów Ant Design
 
 // Import zmiennych projektu
-@import './variables';
+@use './variables' as *;
 
 // Nadpisanie kolorów Ant Design
 :root {

@@ -1,7 +1,7 @@
-@import './variables';
-@import './reset';
-@import './typography';
-@import './antd-theme';
+@use './variables' as *;
+@use './reset';
+@use './typography';
+@use './antd-theme';
 
 * {
   margin: 0;
