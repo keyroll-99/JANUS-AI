@@ -1,6 +1,9 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { ConfigProvider } from 'antd';
+import plPL from 'antd/locale/pl_PL';
 import RootLayout from './components/layouts/RootLayout';
 import ErrorBoundary from './components/shared/ErrorBoundary';
+import { antdTheme } from './shared/config/antd-theme';
 
 const router = createBrowserRouter([
   {
@@ -50,7 +53,11 @@ const router = createBrowserRouter([
 ]);
 
 function App() {
-  return <RouterProvider router={router} />;
+  return (
+    <ConfigProvider theme={antdTheme} locale={plPL}>
+      <RouterProvider router={router} />
+    </ConfigProvider>
+  );
 }
 
 export default App;

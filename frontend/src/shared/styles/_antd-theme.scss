@@ -1,0 +1,68 @@
+// Ant Design Theme Customization
+// Wykorzystywane do nadpisywania domyślnych stylów Ant Design
+
+// Import zmiennych projektu
+@import './variables';
+
+// Nadpisanie kolorów Ant Design
+:root {
+  // Primary colors
+  --ant-primary-color: #{$color-primary};
+  --ant-success-color: #{$color-success};
+  --ant-error-color: #{$color-error};
+  --ant-warning-color: #{$color-warning};
+  
+  // Background colors
+  --ant-background-color: #{$color-background};
+  
+  // Text colors
+  --ant-text-color: #{$color-text-primary};
+  --ant-text-color-secondary: #{$color-text-secondary};
+}
+
+// Customizacja komponentów Ant Design
+.ant-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.ant-table {
+  font-size: 14px;
+  
+  .ant-table-thead > tr > th {
+    background-color: $color-background-secondary;
+    font-weight: 600;
+  }
+}
+
+.ant-statistic {
+  .ant-statistic-title {
+    color: $color-text-secondary;
+    font-size: 14px;
+  }
+  
+  .ant-statistic-content {
+    font-weight: 600;
+  }
+}
+
+.ant-btn-primary {
+  box-shadow: none;
+  
+  &:hover {
+    opacity: 0.9;
+  }
+}
+
+// Responsywność dla mobile
+@media (max-width: 768px) {
+  .ant-card {
+    margin-bottom: 16px;
+  }
+  
+  .ant-statistic {
+    .ant-statistic-content {
+      font-size: 20px;
+    }
+  }
+}

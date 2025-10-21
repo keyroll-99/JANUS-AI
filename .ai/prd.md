@@ -18,13 +18,15 @@ Zarządzanie portfelem inwestycyjnym, który jest często rozproszony między r�
   - 3.4.3. Generowanie konkretnych rekomendacji "kup/sprzedaj" na podstawie zdefiniowanych celów użytkownika i analizy rynku.
   - 3.4.4. Przechowywanie historii wygenerowanych analiz wraz z datą ich wykonania.
 - 3.5. Dashboard:
-  - 3.5.1. Prezentacja łącznej wartości portfela w PLN.
-  - 3.5.2. Wykres historyczny wartości portfela.
-  - 3.5.3. Wizualizacja dywersyfikacji portfela (np. wykres kołowy według spółek lub sektorów).
+  - 3.5.1. Prezentacja łącznej wartości portfela w PLN z wykorzystaniem komponentów Statistics.
+  - 3.5.2. Wykres historyczny wartości portfela (Area/Line chart).
+  - 3.5.3. Wizualizacja dywersyfikacji portfela (wykres kołowy według spółek lub sektorów).
+  - 3.5.4. Profesjonalny wygląd z wykorzystaniem Ant Design component library.
 - 3.6. Architektura:
   - 3.6.1. Aplikacja webowa z responsywnym widokiem mobilnym.
   - 3.6.2. Projekt rozwijany jako open-source.
   - 3.6.3. Dokumentacja projektu zawarta w pliku README.md.
+  - 3.6.4. Frontend wykorzystuje Ant Design dla spójnego UI aplikacji finansowej.
 
 ## 4. Granice produktu
 W ramach pierwszej wersji produktu (MVP) następujące funkcjonalności NIE będą realizowane:
@@ -75,25 +77,29 @@ W ramach pierwszej wersji produktu (MVP) następujące funkcjonalności NIE będ
 - Tytuł: Ręczne dodawanie transakcji
 - Opis: Jako użytkownik, chcę mieć możliwość ręcznego dodania nowej transakcji, aby moje dane w aplikacji były zawsze aktualne.
 - Kryteria akceptacji:
-  - 1. Dostępny jest formularz z polami: data transakcji, ticker, ilość, cena, typ (kupno/sprzedaż).
-  - 2. Formularz posiada walidację (np. data nie może być z przyszłości, ilość i cena muszą być liczbami dodatnimi).
+  - 1. Dostępny jest formularz Ant Design z polami: DatePicker (data transakcji), Input (ticker), InputNumber (ilość), InputNumber (cena), Select (typ: kupno/sprzedaż).
+  - 2. Formularz posiada walidację z Zod (np. data nie może być z przyszłości, ilość i cena muszą być liczbami dodatnimi).
   - 3. Po dodaniu transakcji, dane na dashboardzie (wartość portfela, dywersyfikacja) są natychmiast aktualizowane.
+  - 4. Formularz wyświetla czytelne komunikaty błędów walidacji.
 
 - ID: US-006
 - Tytuł: Edycja istniejącej transakcji
 - Opis: Jako użytkownik, chcę mieć możliwość edycji wcześniej dodanej transakcji, aby poprawić ewentualne błędy.
 - Kryteria akceptacji:
-  - 1. Na liście transakcji każda pozycja ma opcję "Edytuj".
-  - 2. Po kliknięciu "Edytuj" pojawia się formularz wypełniony danymi wybranej transakcji.
+  - 1. Na liście transakcji (Ant Design Table) każda pozycja ma opcję "Edytuj" w kolumnie akcji.
+  - 2. Po kliknięciu "Edytuj" pojawia się Modal z formularzem Ant Design wypełnionym danymi wybranej transakcji.
   - 3. Po zapisaniu zmian, dane na dashboardzie są przeliczane i aktualizowane.
+  - 4. Modal można zamknąć bez zapisywania zmian.
 
 - ID: US-007
 - Tytuł: Przeglądanie dashboardu
 - Opis: Jako użytkownik, po zalogowaniu chcę zobaczyć na pulpicie kluczowe informacje o moim portfelu, aby szybko ocenić jego stan.
 - Kryteria akceptacji:
-  - 1. Dashboard wyświetla łączną wartość portfela w PLN.
-  - 2. Dashboard zawiera wykres liniowy pokazujący historyczną zmianę wartości portfela w czasie.
-  - 3. Dashboard zawiera wykres kołowy pokazujący dywersyfikację portfela (np. procentowy udział poszczególnych spółek w całości).
+  - 1. Dashboard wyświetla łączną wartość portfela w PLN przy użyciu komponentu Ant Design Statistic z ikoną trendu (strzałka w górę/dół).
+  - 2. Dashboard zawiera wykres Area/Line (Ant Design Charts) pokazujący historyczną zmianę wartości portfela w czasie.
+  - 3. Dashboard zawiera wykres kołowy (Pie Chart) pokazujący dywersyfikację portfela (np. procentowy udział poszczególnych spółek w całości).
+  - 4. Wszystkie komponenty wykorzystują spójny design system Ant Design.
+  - 5. Dashboard jest responsywny i dobrze wyświetla się na urządzeniach mobilnych (Grid system Ant Design).
 
 - ID: US-008
 - Tytuł: Uruchomienie analizy AI

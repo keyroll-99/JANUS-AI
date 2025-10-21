@@ -71,8 +71,17 @@ Janus AI to monorepo zawierające aplikację webową z responsywnym widokiem mob
   - Variables i mixins dla consistency
   - Nested selectors
   - Zgodność z project guidelines
+  - Customizacja Ant Design theme
 
 ### Kluczowe biblioteki
+
+#### UI Component Library
+- **Ant Design (antd)** - Enterprise UI component library
+  - Gotowe komponenty dla aplikacji finansowych (Tables, Forms, Cards, Statistics)
+  - Doskonałe wsparcie TypeScript
+  - Spójny design system
+  - Optymalizacja: tree-shaking i targeted imports
+- **@ant-design/icons** - Ikony zintegrowane z Ant Design
 
 #### Data Fetching
 - **Native Fetch API** - Proste fetchowanie danych
@@ -81,13 +90,17 @@ Janus AI to monorepo zawierające aplikację webową z responsywnym widokiem mob
   - _Bez React Query - overengineering dla aktualnych wymagań_
 
 #### Forms & Validation
-- **react-hook-form** - Performant form handling
+- **Ant Design Form** - Zintegrowany system formularzy z antd
 - **zod** - Schema validation (współdzielona z backendem)
+  - Integracja z Ant Design Forms
 
 #### Charts & Visualization
-- **recharts** - Wykresy dla dashboard
+- **@ant-design/charts** - Biblioteka wykresów oparta na G2Plot
+  - Lepsza integracja z Ant Design niż recharts
   - Line chart (historia wartości portfela)
   - Pie chart (dywersyfikacja)
+  - Area chart dla wizualizacji zmian wartości
+  - Specjalistyczne wykresy finansowe (candlestick, stock charts)
   - Responsive i customizable
 
 #### UI Components
@@ -196,8 +209,13 @@ janus-ai/
 1. **Express.js** - Wystarczająco prosty, wystarczająco mocny
 2. **PostgreSQL** - Idealny dla finansowych danych transakcyjnych
 3. **React + React Router** - Sprawdzona kombinacja
-4. **SCSS** - Zgodne z project guidelines
-5. **TypeScript** - Type safety dla całego stacku
+4. **Ant Design + Ant Design Charts** - Enterprise UI library idealna dla aplikacji finansowych
+   - Przyspiesza development MVP (gotowe komponenty)
+   - Spójny design system
+   - Doskonałe wsparcie dla tabel danych i formularzy
+   - Specjalistyczne wykresy finansowe
+5. **SCSS** - Zgodne z project guidelines + customizacja Ant Design theme
+6. **TypeScript** - Type safety dla całego stacku
 
 ### ❌ Odrzucone
 1. **React Query** - Overengineering dla MVP
@@ -209,6 +227,16 @@ janus-ai/
    - Chcemy zachować separację BE/FE
    - Open-source friendly approach
    - Łatwiejszy self-hosting
+
+3. **recharts** - Zastąpiony przez @ant-design/charts
+   - Lepsza integracja z Ant Design
+   - Więcej opcji dla wizualizacji finansowych
+   - Spójność w całym UI
+
+4. **react-hook-form** - Zastąpiony przez Ant Design Form
+   - Natywna integracja z komponentami Ant Design
+   - Mniej dependencies
+   - Nadal używamy Zod do walidacji
 
 ### 🔮 Do rozważenia w przyszłości
 1. **Redis** - Cache dla analiz AI (redukcja kosztów)
@@ -255,12 +283,19 @@ janus-ai/
 ## Podsumowanie
 
 Stack jest zoptymalizowany pod:
-- ✅ Szybkie dostarczenie MVP (3-4 tygodnie)
+- ✅ Szybkie dostarczenie MVP (3-4 tygodnie) - Ant Design przyspiesza rozwój UI
 - ✅ Niskie koszty utrzymania (głównie AI API)
 - ✅ Open-source friendly
 - ✅ Skalowalność na przyszłość
 - ✅ Bezpieczeństwo finansowych danych
 - ✅ Developer experience (TypeScript, hot reload, testing)
+- ✅ Profesjonalny wygląd aplikacji finansowej out-of-the-box
+
+**Uwagi dotyczące Ant Design:**
+- Targeted imports (`import { Table, Form } from 'antd'`) dla optymalizacji bundle size
+- Konfiguracja theme na początku projektu
+- Bundle size: ~800KB+ (akceptowalne dla MVP aplikacji finansowej)
+- Excellent TypeScript support
 
 **Całkowity koszt miesięczny (szacunki dla 100 aktywnych użytkowników):**
 - Hosting Backend: $10-20
