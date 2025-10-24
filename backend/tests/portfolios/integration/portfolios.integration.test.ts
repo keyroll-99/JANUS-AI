@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Mock config BEFORE any other imports
 jest.mock('../../../src/shared/config/config', () => ({
   __esModule: true,
@@ -27,6 +28,7 @@ jest.mock('../../../src/shared/config/config', () => ({
 jest.mock('../../../src/shared/config/supabase');
 
 // Now import app and other dependencies
+// @ts-nocheck
 import request from 'supertest';
 import app from '../../../src/app';
 import { supabase } from '../../../src/shared/config/supabase';
@@ -59,28 +61,26 @@ describe('Dashboard Endpoint Integration Tests', () => {
   });
 
   describe('GET /api/v1/dashboard', () => {
-    const mockPositions = [
+    const mockTransactions = [
       {
         user_id: mockUserId,
-        ticker: 'AAPL',
         account_type_id: 1,
-        total_quantity: 10,
-        avg_price: 150.0,
-        total_cost: 1500.0,
-        transaction_count: 2,
-        first_transaction_date: '2025-01-01',
-        last_transaction_date: '2025-01-15',
+        ticker: 'AAPL',
+        quantity: 10,
+        total_amount: 1500.0,
+        commission: 0,
+        transaction_date: '2025-01-01',
+        transaction_types: { name: 'BUY' },
       },
       {
         user_id: mockUserId,
-        ticker: 'GOOGL',
         account_type_id: 1,
-        total_quantity: 5,
-        avg_price: 140.0,
-        total_cost: 700.0,
-        transaction_count: 1,
-        first_transaction_date: '2025-01-10',
-        last_transaction_date: '2025-01-10',
+        ticker: 'GOOGL',
+        quantity: 5,
+        total_amount: 700.0,
+        commission: 0,
+        transaction_date: '2025-01-10',
+        transaction_types: { name: 'BUY' },
       },
     ];
 
@@ -110,11 +110,12 @@ describe('Dashboard Endpoint Integration Tests', () => {
     ];
 
     beforeEach(() => {
-      // Mock portfolio positions query
-      const positionsChain = {
+      // Mock transactions query
+      const transactionsChain = {
         select: jest.fn().mockReturnThis(),
-        eq: jest.fn().mockResolvedValue({
-          data: mockPositions,
+        eq: jest.fn().mockReturnThis(),
+        not: jest.fn().mockResolvedValue({
+          data: mockTransactions,
           error: null,
         }),
       };
@@ -131,8 +132,8 @@ describe('Dashboard Endpoint Integration Tests', () => {
       };
 
       (supabase.from as jest.Mock).mockImplementation((table: string) => {
-        if (table === 'user_portfolio_positions') {
-          return positionsChain;
+        if (table === 'transactions') {
+          return transactionsChain;
         }
         if (table === 'portfolio_snapshots') {
           return snapshotsChain;
@@ -257,10 +258,11 @@ describe('Dashboard Endpoint Integration Tests', () => {
 
     it('should return 500 when database query fails', async () => {
       (supabase.from as jest.Mock).mockImplementation((table: string) => {
-        if (table === 'user_portfolio_positions') {
+        if (table === 'transactions') {
           return {
             select: jest.fn().mockReturnThis(),
-            eq: jest.fn().mockResolvedValue({
+            eq: jest.fn().mockReturnThis(),
+            not: jest.fn().mockResolvedValue({
               data: null,
               error: { message: 'Database error' },
             }),
@@ -279,10 +281,11 @@ describe('Dashboard Endpoint Integration Tests', () => {
 
     it('should handle empty portfolio gracefully', async () => {
       (supabase.from as jest.Mock).mockImplementation((table: string) => {
-        if (table === 'user_portfolio_positions') {
+        if (table === 'transactions') {
           return {
             select: jest.fn().mockReturnThis(),
-            eq: jest.fn().mockResolvedValue({ data: [], error: null }),
+            eq: jest.fn().mockReturnThis(),
+            not: jest.fn().mockResolvedValue({ data: [], error: null }),
           };
         }
         if (table === 'portfolio_snapshots') {

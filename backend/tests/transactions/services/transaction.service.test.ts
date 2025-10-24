@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { TransactionService } from '../../../src/transactions/transaction.service';
 import { supabase } from '../../../src/shared/config/supabase';
 import { GetTransactionsQueryDto } from '../../../src/transactions/transaction.types';
@@ -60,7 +61,7 @@ describe('TransactionService', () => {
         order: 'desc',
       };
 
-      const result = await transactionService.getTransactions(mockUserId, query);
+  const result = await transactionService.getTransactions(supabase as any, mockUserId, query);
 
       expect(result.data).toHaveLength(1);
       expect(result.data[0]).toMatchObject({
@@ -107,13 +108,15 @@ describe('TransactionService', () => {
         order: 'desc',
         type: 'BUY',
         ticker: 'AAPL',
+        account: 'MAIN',
       };
 
-      await transactionService.getTransactions(mockUserId, query);
+  await transactionService.getTransactions(supabase as any, mockUserId, query);
 
       expect(mockChain.eq).toHaveBeenCalledWith('user_id', mockUserId);
       expect(mockChain.eq).toHaveBeenCalledWith('transaction_types.name', 'BUY');
       expect(mockChain.eq).toHaveBeenCalledWith('ticker', 'AAPL');
+      expect(mockChain.eq).toHaveBeenCalledWith('account_types.name', 'MAIN');
     });
 
     it('should throw error when database query fails', async () => {
@@ -138,7 +141,7 @@ describe('TransactionService', () => {
       };
 
       await expect(
-        transactionService.getTransactions(mockUserId, query)
+  transactionService.getTransactions(supabase as any, mockUserId, query)
       ).rejects.toThrow('Failed to fetch transactions: Database error');
     });
   });
@@ -175,6 +178,7 @@ describe('TransactionService', () => {
       (supabase.from as jest.Mock).mockReturnValue({ select: mockSelect });
 
       const result = await transactionService.getTransactionById(
+        supabase as any,
         mockUserId,
         'transaction-1'
       );
@@ -209,11 +213,11 @@ describe('TransactionService', () => {
       (supabase.from as jest.Mock).mockReturnValue({ select: mockSelect });
 
       await expect(
-        transactionService.getTransactionById(mockUserId, 'non-existent')
+  transactionService.getTransactionById(supabase as any, mockUserId, 'non-existent')
       ).rejects.toThrow('Transaction not found');
 
       try {
-        await transactionService.getTransactionById(mockUserId, 'non-existent');
+    await transactionService.getTransactionById(supabase as any, mockUserId, 'non-existent');
       } catch (error: any) {
         expect(error.status).toBe(404);
       }
@@ -262,7 +266,7 @@ describe('TransactionService', () => {
         commission: 3.0,
       };
 
-      const result = await transactionService.createTransaction(mockUserId, createDto);
+  const result = await transactionService.createTransaction(supabase as any, mockUserId, createDto);
 
       expect(result).toMatchObject({
         id: 'transaction-new',
@@ -306,7 +310,7 @@ describe('TransactionService', () => {
       };
 
       await expect(
-        transactionService.createTransaction(mockUserId, createDto)
+  transactionService.createTransaction(supabase as any, mockUserId, createDto)
       ).rejects.toThrow('Failed to create transaction: Insert failed');
     });
   });
@@ -369,6 +373,7 @@ describe('TransactionService', () => {
       };
 
       const result = await transactionService.updateTransaction(
+        supabase as any,
         mockUserId,
         'transaction-1',
         updateDto
@@ -403,11 +408,11 @@ describe('TransactionService', () => {
       };
 
       await expect(
-        transactionService.updateTransaction(mockUserId, 'non-existent', updateDto)
+  transactionService.updateTransaction(supabase as any, mockUserId, 'non-existent', updateDto)
       ).rejects.toThrow('Transaction not found');
 
       try {
-        await transactionService.updateTransaction(mockUserId, 'non-existent', updateDto);
+    await transactionService.updateTransaction(supabase as any, mockUserId, 'non-existent', updateDto);
       } catch (error: any) {
         expect(error.status).toBe(404);
       }
@@ -460,7 +465,7 @@ describe('TransactionService', () => {
         ticker: 'msft', // Should be uppercased
       };
 
-      await transactionService.updateTransaction(mockUserId, 'transaction-1', updateDto);
+  await transactionService.updateTransaction(supabase as any, mockUserId, 'transaction-1', updateDto);
 
       expect(mockUpdate).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -517,7 +522,7 @@ describe('TransactionService', () => {
       };
 
       await expect(
-        transactionService.updateTransaction(mockUserId, 'transaction-1', updateDto)
+  transactionService.updateTransaction(supabase as any, mockUserId, 'transaction-1', updateDto)
       ).rejects.toThrow('Failed to update transaction: Update failed');
     });
   });
@@ -566,7 +571,7 @@ describe('TransactionService', () => {
 
       (supabase.from as jest.Mock).mockImplementation(mockFrom);
 
-      await transactionService.deleteTransaction(mockUserId, 'transaction-1');
+  await transactionService.deleteTransaction(supabase as any, mockUserId, 'transaction-1');
 
       expect(mockFrom).toHaveBeenCalledWith('transactions');
       expect(mockDeleteChain.eq).toHaveBeenCalledWith('id', 'transaction-1');
@@ -587,11 +592,11 @@ describe('TransactionService', () => {
       });
 
       await expect(
-        transactionService.deleteTransaction(mockUserId, 'non-existent')
+  transactionService.deleteTransaction(supabase as any, mockUserId, 'non-existent')
       ).rejects.toThrow('Transaction not found');
 
       try {
-        await transactionService.deleteTransaction(mockUserId, 'non-existent');
+    await transactionService.deleteTransaction(supabase as any, mockUserId, 'non-existent');
       } catch (error: any) {
         expect(error.status).toBe(404);
       }
@@ -640,7 +645,7 @@ describe('TransactionService', () => {
       (supabase.from as jest.Mock).mockImplementation(mockFrom);
 
       await expect(
-        transactionService.deleteTransaction(mockUserId, 'transaction-1')
+  transactionService.deleteTransaction(supabase as any, mockUserId, 'transaction-1')
       ).rejects.toThrow('Failed to delete transaction: Delete failed');
     });
   });

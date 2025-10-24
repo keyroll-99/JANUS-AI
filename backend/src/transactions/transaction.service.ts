@@ -1,4 +1,5 @@
-import { supabase } from '../shared/config/supabase';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '../shared/config/database.types';
 import { Tables } from '../shared/config/database.types';
 import { randomUUID } from 'crypto';
 import {
@@ -11,10 +12,6 @@ import {
 } from './transaction.types';
 import { XtbParser, XtbTransactionRow } from './xtb-parser';
 
-type TransactionRow = Tables<'transactions'>;
-type AccountTypeRow = Tables<'account_types'>;
-type TransactionTypeRow = Tables<'transaction_types'>;
-
 /**
  * TransactionService handles all business logic for transactions
  * Communicates with Supabase database and enforces authorization
@@ -25,14 +22,15 @@ export class TransactionService {
    * @throws {Error} When database query fails
    */
   async getTransactions(
+    supabaseClient: SupabaseClient<Database>,
     userId: string,
     query: GetTransactionsQueryDto
   ): Promise<PaginatedTransactionsDto> {
-    const { page, limit, sortBy, order, type, ticker } = query;
+    const { page, limit, sortBy, order, type, ticker, account } = query;
     const offset = (page - 1) * limit;
 
     // Build base query with joins to get human-readable names
-    let queryBuilder = supabase
+    let queryBuilder = supabaseClient
       .from('transactions')
       .select(
         `
@@ -51,6 +49,10 @@ export class TransactionService {
 
     if (ticker) {
       queryBuilder = queryBuilder.eq('ticker', ticker.toUpperCase());
+    }
+
+    if (account) {
+      queryBuilder = queryBuilder.eq('account_types.name', account);
     }
 
     // Apply sorting
@@ -85,8 +87,12 @@ export class TransactionService {
    * Get a single transaction by ID
    * @throws {Error} 404 when transaction not found or doesn't belong to user
    */
-  async getTransactionById(userId: string, transactionId: string): Promise<TransactionDto> {
-    const { data, error } = await supabase
+  async getTransactionById(
+    supabaseClient: SupabaseClient<Database>,
+    userId: string,
+    transactionId: string
+  ): Promise<TransactionDto> {
+    const { data, error } = await supabaseClient
       .from('transactions')
       .select(
         `
@@ -136,8 +142,12 @@ export class TransactionService {
    * Create a new transaction
    * @throws {Error} When database insert fails
    */
-  async createTransaction(userId: string, dto: CreateTransactionDto): Promise<TransactionDto> {
-    const { data, error } = await supabase
+  async createTransaction(
+    supabaseClient: SupabaseClient<Database>,
+    userId: string,
+    dto: CreateTransactionDto
+  ): Promise<TransactionDto> {
+    const { data, error } = await supabaseClient
       .from('transactions')
       .insert({
         user_id: userId,
@@ -173,12 +183,13 @@ export class TransactionService {
    * @throws {Error} 404 when transaction not found or doesn't belong to user
    */
   async updateTransaction(
+    supabaseClient: SupabaseClient<Database>,
     userId: string,
     transactionId: string,
     dto: UpdateTransactionDto
   ): Promise<TransactionDto> {
     // First verify ownership
-    await this.getTransactionById(userId, transactionId);
+    await this.getTransactionById(supabaseClient, userId, transactionId);
 
     // Build update object with only provided fields
     const updateData: any = {};
@@ -196,7 +207,7 @@ export class TransactionService {
     // Always update the updated_at timestamp
     updateData.updated_at = new Date().toISOString();
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from('transactions')
       .update(updateData)
       .eq('id', transactionId)
@@ -221,11 +232,15 @@ export class TransactionService {
    * Delete a transaction
    * @throws {Error} 404 when transaction not found or doesn't belong to user
    */
-  async deleteTransaction(userId: string, transactionId: string): Promise<void> {
+  async deleteTransaction(
+    supabaseClient: SupabaseClient<Database>,
+    userId: string,
+    transactionId: string
+  ): Promise<void> {
     // First verify ownership
-    await this.getTransactionById(userId, transactionId);
+    await this.getTransactionById(supabaseClient, userId, transactionId);
 
-    const { error } = await supabase
+    const { error } = await supabaseClient
       .from('transactions')
       .delete()
       .eq('id', transactionId)
@@ -241,8 +256,10 @@ export class TransactionService {
    * @throws {Error} 422 when file format is invalid or data validation fails
    */
   async importFromXtb(
+    supabaseClient: SupabaseClient<Database>,
     userId: string,
-    file: Express.Multer.File
+    file: Express.Multer.File,
+    overrideAccountTypeId?: number
   ): Promise<ImportTransactionsResponseDto> {
     // Parse Excel file
     const parser = new XtbParser();
@@ -251,16 +268,25 @@ export class TransactionService {
     // Generate unique batch ID for this import
     const importBatchId = randomUUID();
 
+    let manualAccountTypeId: number | undefined;
+    if (typeof overrideAccountTypeId === 'number') {
+      manualAccountTypeId = await this.validateAccountTypeId(supabaseClient, overrideAccountTypeId);
+    }
+
     // Transform XTB transactions to our format
-    const transactionsToInsert = xtbTransactions.map((xtbTx) =>
-      this.mapXtbTransaction(userId, xtbTx, importBatchId)
-    );
+    const transactionsToInsert = xtbTransactions.map((xtbTx) => {
+      const mapped = this.mapXtbTransaction(userId, xtbTx, importBatchId);
+      if (manualAccountTypeId) {
+        mapped.account_type_id = manualAccountTypeId;
+      }
+      return mapped;
+    });
 
     // Validate all transactions before inserting
     this.validateTransactions(transactionsToInsert);
 
     // Batch insert all transactions
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from('transactions')
       .insert(transactionsToInsert)
       .select('id');
@@ -354,6 +380,29 @@ export class TransactionService {
         throw new Error(`Transaction ${index + 1}: Missing total_amount`);
       }
     });
+  }
+
+  /**
+   * Ensure provided account type exists before overriding import data
+   * @throws {Error} When account type is invalid
+   */
+  private async validateAccountTypeId(
+    supabaseClient: SupabaseClient<Database>,
+    accountTypeId: number
+  ): Promise<number> {
+    const { data, error } = await supabaseClient
+      .from('account_types')
+      .select('id')
+      .eq('id', accountTypeId)
+      .single();
+
+    if (error || !data) {
+      const validationError = new Error('Invalid account type selected for import') as any;
+      validationError.status = 400;
+      throw validationError;
+    }
+
+    return data.id;
   }
 }
 

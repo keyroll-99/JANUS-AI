@@ -1,5 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import { supabase } from '../config/supabase';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { supabase, createUserSupabaseClient } from '../config/supabase';
+import type { Database } from '../config/database.types';
 
 /**
  * Extended Express Request with authenticated user
@@ -10,6 +12,8 @@ export interface AuthenticatedRequest extends Request {
     email: string;
     role: string;
   };
+  accessToken: string;
+  supabaseClient: SupabaseClient<Database>;
 }
 
 /**
@@ -62,6 +66,8 @@ export const requireAuth = async (
       email: data.user.email || '',
       role: data.user.role || 'authenticated',
     };
+    (req as AuthenticatedRequest).accessToken = token;
+    (req as AuthenticatedRequest).supabaseClient = createUserSupabaseClient(token);
 
     next();
   } catch (error) {
@@ -114,6 +120,8 @@ export const optionalAuth = async (
         email: data.user.email || '',
         role: data.user.role || 'authenticated',
       };
+      (req as AuthenticatedRequest).accessToken = token;
+      (req as AuthenticatedRequest).supabaseClient = createUserSupabaseClient(token);
     }
 
     // Continue regardless of token validity

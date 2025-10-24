@@ -18,8 +18,9 @@ export class PortfolioController {
   ): Promise<void> {
     try {
       const userId = req.user.id;
+      const supabaseClient = req.supabaseClient;
 
-      const dashboardData = await portfolioService.getDashboardData(userId);
+      const dashboardData = await portfolioService.getDashboardData(supabaseClient, userId);
 
       res.status(200).json(dashboardData);
     } catch (error) {

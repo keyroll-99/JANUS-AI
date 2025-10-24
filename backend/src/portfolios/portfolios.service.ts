@@ -1,5 +1,5 @@
-import { supabase } from '../shared/config/supabase';
-import { Tables } from '../shared/config/database.types';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Database, Tables } from '../shared/config/database.types';
 import { AppError } from '../shared/errors/AppError';
 import config from '../shared/config/config';
 import { InMemoryCache } from '../shared/cache/InMemoryCache';
@@ -8,12 +8,20 @@ import {
   DashboardSummaryDto,
   PortfolioHistoryPointDto,
   DiversificationItemDto,
-  PortfolioPosition,
   MarketPrice,
 } from './portfolios.types';
 
 type PortfolioSnapshot = Tables<'portfolio_snapshots'>;
-type UserPortfolioPosition = Tables<'user_portfolio_positions'>;
+
+interface AggregatedPosition {
+  ticker: string;
+  accountTypeId: number | null;
+  totalQuantity: number;
+  avgPrice: number | null;
+  totalCost: number;
+  firstTransactionDate: string | null;
+  lastTransactionDate: string | null;
+}
 
 /**
  * PortfolioService handles all business logic for portfolio/dashboard data
@@ -67,12 +75,15 @@ export class PortfolioService {
    * @returns Complete dashboard data with summary, history, and diversification
    * @throws {AppError} When data fetching or calculation fails
    */
-  async getDashboardData(userId: string): Promise<GetDashboardResponseDto> {
+  async getDashboardData(
+    supabaseClient: SupabaseClient<Database>,
+    userId: string
+  ): Promise<GetDashboardResponseDto> {
     try {
       // Fetch all required data in parallel for better performance
       const [currentPositions, historicalSnapshots] = await Promise.all([
-        this.getCurrentPositions(userId),
-        this.getHistoricalSnapshots(userId),
+        this.getCurrentPositions(supabaseClient, userId),
+        this.getHistoricalSnapshots(supabaseClient, userId),
       ]);
 
       // Get market prices for current positions
@@ -116,19 +127,123 @@ export class PortfolioService {
    * @private
    */
   private async getCurrentPositions(
+    supabaseClient: SupabaseClient<Database>,
     userId: string
-  ): Promise<UserPortfolioPosition[]> {
-    const { data, error } = await supabase
-      .from('user_portfolio_positions')
-      .select('*')
-      .eq('user_id', userId);
+  ): Promise<AggregatedPosition[]> {
+    const { data, error } = await supabaseClient
+      .from('transactions')
+      .select(
+        `
+        account_type_id,
+        ticker,
+        quantity,
+        total_amount,
+        commission,
+        transaction_date,
+        transaction_types!inner(name)
+      `
+      )
+      .eq('user_id', userId)
+      .not('ticker', 'is', null);
 
     if (error) {
-      console.error('[PortfolioService] Failed to fetch current positions:', { userId, error });
+      console.error('[PortfolioService] Failed to aggregate positions from transactions:', {
+        userId,
+        error,
+      });
       throw new AppError('Failed to fetch current positions', 500);
     }
 
-    return data || [];
+    if (!data || data.length === 0) {
+      return [];
+    }
+
+    type PositionAccumulator = {
+      ticker: string;
+      accountTypeId: number | null;
+      totalQuantity: number;
+      totalCost: number;
+      firstTransactionDate: string | null;
+      lastTransactionDate: string | null;
+    };
+
+    const positions = new Map<string, PositionAccumulator>();
+
+    data.forEach((row: any) => {
+      const typeName = row.transaction_types?.name;
+      if (!typeName || (typeName !== 'BUY' && typeName !== 'SELL')) {
+        return;
+      }
+
+      const ticker: string | null = row.ticker;
+      if (!ticker) {
+        return;
+      }
+
+      const quantity = typeof row.quantity === 'number' ? row.quantity : Number(row.quantity || 0);
+      if (!quantity || quantity <= 0) {
+        return;
+      }
+
+      const totalAmount =
+        typeof row.total_amount === 'number' ? row.total_amount : Number(row.total_amount || 0);
+      const commission =
+        typeof row.commission === 'number' ? row.commission : Number(row.commission || 0);
+
+      const transactionDate = row.transaction_date as string | null;
+      const accountTypeId: number | null = row.account_type_id ?? null;
+
+      const key = `${accountTypeId ?? 'default'}|${ticker}`;
+      let position = positions.get(key);
+
+      if (!position) {
+        position = {
+          ticker,
+          accountTypeId,
+          totalQuantity: 0,
+          totalCost: 0,
+          firstTransactionDate: transactionDate,
+          lastTransactionDate: transactionDate,
+        };
+        positions.set(key, position);
+      }
+
+      if (transactionDate) {
+        if (!position.firstTransactionDate || transactionDate < position.firstTransactionDate) {
+          position.firstTransactionDate = transactionDate;
+        }
+        if (!position.lastTransactionDate || transactionDate > position.lastTransactionDate) {
+          position.lastTransactionDate = transactionDate;
+        }
+      }
+
+      if (typeName === 'BUY') {
+        position.totalQuantity += quantity;
+        position.totalCost += totalAmount + commission;
+      } else if (typeName === 'SELL') {
+        position.totalQuantity -= quantity;
+        position.totalCost -= totalAmount - commission;
+      }
+    });
+
+    const aggregated: AggregatedPosition[] = [];
+
+    positions.forEach((position) => {
+      if (position.totalQuantity > 0) {
+        const avgPrice = position.totalCost > 0 ? position.totalCost / position.totalQuantity : null;
+        aggregated.push({
+          ticker: position.ticker,
+          accountTypeId: position.accountTypeId,
+          totalQuantity: position.totalQuantity,
+          avgPrice,
+          totalCost: position.totalCost,
+          firstTransactionDate: position.firstTransactionDate,
+          lastTransactionDate: position.lastTransactionDate,
+        });
+      }
+    });
+
+    return aggregated;
   }
 
   /**
@@ -136,12 +251,13 @@ export class PortfolioService {
    * @private
    */
   private async getHistoricalSnapshots(
+    supabaseClient: SupabaseClient<Database>,
     userId: string
   ): Promise<PortfolioSnapshot[]> {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - this.HISTORY_DAYS);
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from('portfolio_snapshots')
       .select('*')
       .eq('user_id', userId)
@@ -306,7 +422,7 @@ export class PortfolioService {
    * @private
    */
   private calculateSummary(
-    positions: UserPortfolioPosition[],
+    positions: AggregatedPosition[],
     snapshots: PortfolioSnapshot[],
     marketPrices: Map<string, MarketPrice>
   ): DashboardSummaryDto {
@@ -314,11 +430,13 @@ export class PortfolioService {
     let investedValue = 0;
     
     positions.forEach((position) => {
-      if (position.ticker && position.total_quantity) {
-        const marketPrice = marketPrices.get(position.ticker);
-        if (marketPrice) {
-          investedValue += position.total_quantity * marketPrice.price;
-        }
+      if (!position.ticker || !position.totalQuantity) {
+        return;
+      }
+
+      const marketPrice = marketPrices.get(position.ticker);
+      if (marketPrice) {
+        investedValue += position.totalQuantity * marketPrice.price;
       }
     });
 
@@ -369,7 +487,7 @@ export class PortfolioService {
    * @private
    */
   private calculateDiversification(
-    positions: UserPortfolioPosition[],
+    positions: AggregatedPosition[],
     marketPrices: Map<string, MarketPrice>,
     totalValue: number
   ): DiversificationItemDto[] {
@@ -381,23 +499,27 @@ export class PortfolioService {
     let otherValue = 0;
 
     positions.forEach((position) => {
-      if (position.ticker && position.total_quantity) {
-        const marketPrice = marketPrices.get(position.ticker);
-        if (marketPrice) {
-          const value = position.total_quantity * marketPrice.price;
-          const percentage = (value / totalValue) * 100;
+      if (!position.ticker || !position.totalQuantity) {
+        return;
+      }
 
-          // Group small positions into "Other"
-          if (percentage < this.DIVERSIFICATION_THRESHOLD * 100) {
-            otherValue += value;
-          } else {
-            items.push({
-              ticker: position.ticker,
-              value: Math.round(value * 100) / 100,
-              percentage: Math.round(percentage * 100) / 100,
-            });
-          }
-        }
+      const marketPrice = marketPrices.get(position.ticker);
+      if (!marketPrice) {
+        return;
+      }
+
+      const value = position.totalQuantity * marketPrice.price;
+      const percentage = (value / totalValue) * 100;
+
+      // Group small positions into "Other"
+      if (percentage < this.DIVERSIFICATION_THRESHOLD * 100) {
+        otherValue += value;
+      } else {
+        items.push({
+          ticker: position.ticker,
+          value: Math.round(value * 100) / 100,
+          percentage: Math.round(percentage * 100) / 100,
+        });
       }
     });
 

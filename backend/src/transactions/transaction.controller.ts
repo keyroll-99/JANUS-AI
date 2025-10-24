@@ -24,10 +24,11 @@ export class TransactionController {
   ): Promise<void> {
     try {
       const userId = req.user.id;
+  const supabaseClient = req.supabaseClient;
       // Use validatedQuery from validateDto middleware
       const query = (req as any).validatedQuery as GetTransactionsQueryDto;
 
-      const result = await transactionService.getTransactions(userId, query);
+  const result = await transactionService.getTransactions(supabaseClient, userId, query);
 
       res.status(200).json(result);
     } catch (error) {
@@ -46,10 +47,11 @@ export class TransactionController {
   ): Promise<void> {
     try {
       const userId = req.user.id;
+  const supabaseClient = req.supabaseClient;
       // Use validatedParams from validateDto middleware
       const { id } = (req as any).validatedParams as UuidParamDto;
 
-      const transaction = await transactionService.getTransactionById(userId, id);
+  const transaction = await transactionService.getTransactionById(supabaseClient, userId, id);
 
       res.status(200).json(transaction);
     } catch (error) {
@@ -68,9 +70,10 @@ export class TransactionController {
   ): Promise<void> {
     try {
       const userId = req.user.id;
+  const supabaseClient = req.supabaseClient;
       const dto = req.body as CreateTransactionDto;
 
-      const transaction = await transactionService.createTransaction(userId, dto);
+  const transaction = await transactionService.createTransaction(supabaseClient, userId, dto);
 
       res.status(201).json(transaction);
     } catch (error) {
@@ -89,11 +92,12 @@ export class TransactionController {
   ): Promise<void> {
     try {
       const userId = req.user.id;
+  const supabaseClient = req.supabaseClient;
       // Use validatedParams from validateDto middleware
       const { id } = (req as any).validatedParams as UuidParamDto;
       const dto = req.body as UpdateTransactionDto;
 
-      const transaction = await transactionService.updateTransaction(userId, id, dto);
+  const transaction = await transactionService.updateTransaction(supabaseClient, userId, id, dto);
 
       res.status(200).json(transaction);
     } catch (error) {
@@ -112,10 +116,11 @@ export class TransactionController {
   ): Promise<void> {
     try {
       const userId = req.user.id;
+  const supabaseClient = req.supabaseClient;
       // Use validatedParams from validateDto middleware
       const { id } = (req as any).validatedParams as UuidParamDto;
 
-      await transactionService.deleteTransaction(userId, id);
+  await transactionService.deleteTransaction(supabaseClient, userId, id);
 
       res.status(204).send();
     } catch (error) {
@@ -134,7 +139,10 @@ export class TransactionController {
   ): Promise<void> {
     try {
       const userId = req.user.id;
+  const supabaseClient = req.supabaseClient;
       const file = req.file;
+      const accountTypeIdRaw = (req.body as { accountTypeId?: string } | undefined)?.accountTypeId;
+      let accountTypeId: number | undefined;
 
       if (!file) {
         res.status(400).json({
@@ -143,7 +151,18 @@ export class TransactionController {
         return;
       }
 
-      const result = await transactionService.importFromXtb(userId, file);
+      if (accountTypeIdRaw !== undefined && accountTypeIdRaw !== null && accountTypeIdRaw !== '') {
+        const parsed = Number.parseInt(accountTypeIdRaw, 10);
+        if (!Number.isInteger(parsed) || parsed <= 0) {
+          res.status(400).json({
+            message: 'Invalid account type selection. Please choose a valid account or leave automatic detection.',
+          });
+          return;
+        }
+        accountTypeId = parsed;
+      }
+
+  const result = await transactionService.importFromXtb(supabaseClient, userId, file, accountTypeId);
 
       res.status(201).json(result);
     } catch (error) {

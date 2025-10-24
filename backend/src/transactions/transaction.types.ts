@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+const TICKER_REGEX = /^[A-Z0-9]{1,5}(?:[._-][A-Z0-9]{1,4})?$/i;
+
 /**
  * Transaction DTO - represents a single transaction returned to the client
  * Maps database fields to frontend-friendly format
@@ -90,6 +92,7 @@ export const GetTransactionsQuerySchema = z.object({
     .transform((val) => val.toLowerCase() as 'asc' | 'desc'),
   type: z.string().optional(),
   ticker: z.string().optional(),
+  account: z.string().optional(),
 });
 
 export type GetTransactionsQueryDto = z.infer<typeof GetTransactionsQuerySchema>;
@@ -101,7 +104,15 @@ export const CreateTransactionDtoSchema = z.object({
   transactionDate: z.string().datetime({ message: 'Invalid datetime format. Expected ISO 8601.' }),
   transactionTypeId: z.number().int().min(1, { message: 'Transaction type ID is required' }),
   accountTypeId: z.number().int().min(1, { message: 'Account type ID is required' }),
-  ticker: z.string().min(1).max(20).optional().nullable(),
+  ticker: z
+    .string()
+    .min(1)
+    .max(12)
+    .regex(TICKER_REGEX, {
+      message: 'Ticker may contain letters, digits and at most one separator (dot, dash or underscore).',
+    })
+    .optional()
+    .nullable(),
   quantity: z.number().positive().optional().nullable(),
   price: z.number().positive().optional().nullable(),
   totalAmount: z.number(),
@@ -119,7 +130,15 @@ export const UpdateTransactionDtoSchema = z.object({
   transactionDate: z.string().datetime({ message: 'Invalid datetime format. Expected ISO 8601.' }).optional(),
   transactionTypeId: z.number().int().min(1).optional(),
   accountTypeId: z.number().int().min(1).optional(),
-  ticker: z.string().min(1).max(20).optional().nullable(),
+  ticker: z
+    .string()
+    .min(1)
+    .max(12)
+    .regex(TICKER_REGEX, {
+      message: 'Ticker may contain letters, digits and at most one separator (dot, dash or underscore).',
+    })
+    .optional()
+    .nullable(),
   quantity: z.number().positive().optional().nullable(),
   price: z.number().positive().optional().nullable(),
   totalAmount: z.number().optional(),

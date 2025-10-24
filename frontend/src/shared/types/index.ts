@@ -91,3 +91,5 @@ export interface DashboardState {
   error: string | null;
   refreshing: boolean;
 }
+
+export * from './transactions.types';

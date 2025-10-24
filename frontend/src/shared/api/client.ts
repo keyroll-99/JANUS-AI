@@ -8,14 +8,19 @@ export const apiClient = async <T = unknown>(
   options: RequestInit = {}
 ): Promise<T> => {
   const token = localStorage.getItem('accessToken');
-  
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    ...(options.headers as Record<string, string>),
-  };
+  const headers = new Headers(options.headers ?? {});
+  const isFormData = options.body instanceof FormData;
+
+  if (!isFormData && !headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json');
+  }
+
+  if (isFormData && headers.has('Content-Type')) {
+    headers.delete('Content-Type');
+  }
 
   if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+    headers.set('Authorization', `Bearer ${token}`);
   }
 
   const url = `${config.apiUrl}${endpoint}`;
