@@ -273,18 +273,156 @@ export class PortfolioService {
   }
 
   /**
-   * Fetch price for a single ticker from Finnhub API
+   * Map XTB ticker format to Finnhub format
+   * XTB uses suffixes like .PL for Polish stocks and .US for US stocks
+   * Finnhub uses .WA (Warsaw Stock Exchange) for Polish stocks and no suffix for US stocks
+   * @private
+   */
+  private mapTickerToFinnhub(ticker: string): string {
+    // Polish stocks: CDR.PL -> CDR.WA
+    if (ticker.endsWith('.PL')) {
+      return ticker.replace('.PL', '.WA');
+    }
+
+    // US stocks: TSLA.US -> TSLA (remove .US suffix)
+    if (ticker.endsWith('.US')) {
+      return ticker.replace('.US', '');
+    }
+
+    // Other exchanges or already correct format
+    return ticker;
+  }
+
+  /**
+   * Fetch price from Stooq API (free, specializes in Polish stocks)
+   * @private
+   */
+  private async fetchPriceFromStooq(ticker: string): Promise<MarketPrice | null> {
+    try {
+      // Stooq uses format: cdr for CDR.PL
+      const symbol = ticker.replace('.PL', '').toLowerCase();
+      const url = `https://stooq.com/q/l/?s=${symbol}&f=sd2t2ohlcv&h&e=json`;
+      
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        console.error(
+          `[PortfolioService] Stooq API error for ${ticker}: ${response.status}`
+        );
+        return null;
+      }
+
+      const data = await response.json();
+
+      // Stooq returns array of symbols
+      if (data.symbols && data.symbols.length > 0) {
+        const symbolData = data.symbols[0];
+        const price = parseFloat(symbolData.close);
+        
+        if (price && price > 0) {
+          console.log(`[PortfolioService] ✅ Fetched price for ${ticker} from Stooq: ${price} PLN`);
+          return {
+            ticker,
+            price,
+            currency: this.DEFAULT_CURRENCY,
+          };
+        }
+      }
+
+      console.warn(`[PortfolioService] No valid price data from Stooq for ${ticker}`);
+      return null;
+    } catch (error) {
+      console.error(`[PortfolioService] Error fetching price from Stooq for ${ticker}:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Fetch price from Alpha Vantage API (for Polish stocks and fallback)
+   * Note: Alpha Vantage free tier doesn't support Warsaw Stock Exchange
+   * Keeping this for potential future use or paid tier
+   * @private
+   */
+  private async fetchPriceFromAlphaVantage(ticker: string): Promise<MarketPrice | null> {
+    const apiKey = config.marketData.alphaVantageApiKey;
+    if (!apiKey) {
+      return null;
+    }
+
+    try {
+      // Alpha Vantage uses the original ticker format (e.g., CDR.PL as is, or base symbol)
+      // For Polish stocks, try removing the .PL suffix for Alpha Vantage
+      const symbol = ticker.replace('.PL', '');
+      const url = `${config.marketData.alphaVantageBaseUrl}?function=GLOBAL_QUOTE&symbol=${symbol}.WAR&apikey=${apiKey}`;
+      
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        console.error(
+          `[PortfolioService] Alpha Vantage API error for ${ticker}: ${response.status}`
+        );
+        return null;
+      }
+
+      const data = await response.json();
+
+      // Alpha Vantage returns data in "Global Quote" object
+      const quote = data['Global Quote'];
+      if (quote && quote['05. price']) {
+        const price = parseFloat(quote['05. price']);
+        if (price > 0) {
+          console.log(`[PortfolioService] ✅ Fetched price for ${ticker} from Alpha Vantage: ${price} PLN`);
+          return {
+            ticker,
+            price,
+            currency: this.DEFAULT_CURRENCY,
+          };
+        }
+      }
+
+      console.warn(`[PortfolioService] No valid price data from Alpha Vantage for ${ticker}`);
+      return null;
+    } catch (error) {
+      console.error(`[PortfolioService] Error fetching price from Alpha Vantage for ${ticker}:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Fetch price for a single ticker from Finnhub API with Alpha Vantage fallback
    * @private
    */
   private async fetchTickerPrice(ticker: string, apiKey: string): Promise<MarketPrice | null> {
     try {
-      const url = `${config.marketData.finnhubBaseUrl}/quote?symbol=${ticker}&token=${apiKey}`;
+      // Map ticker to Finnhub format
+      const finnhubTicker = this.mapTickerToFinnhub(ticker);
+      
+      const url = `${config.marketData.finnhubBaseUrl}/quote?symbol=${finnhubTicker}&token=${apiKey}`;
       const response = await fetch(url);
 
       if (!response.ok) {
-        console.error(
-          `[PortfolioService] Finnhub API error for ${ticker}: ${response.status}`
-        );
+        // 403 typically means the symbol is not available in the subscription tier
+        if (response.status === 403) {
+          console.warn(
+            `[PortfolioService] Access forbidden for ${ticker} (as ${finnhubTicker}). ` +
+            `Trying fallback APIs...`
+          );
+          
+          // Try Stooq for Polish stocks (free, no API key needed)
+          if (ticker.endsWith('.PL')) {
+            const stooqPrice = await this.fetchPriceFromStooq(ticker);
+            if (stooqPrice) {
+              return stooqPrice;
+            }
+            
+            // Fallback to Alpha Vantage if Stooq fails
+            return await this.fetchPriceFromAlphaVantage(ticker);
+          }
+        } else {
+          console.error(
+            `[PortfolioService] Finnhub API error for ${ticker} (as ${finnhubTicker}): ${response.status}`
+          );
+        }
         return null;
       }
 
@@ -293,13 +431,13 @@ export class PortfolioService {
       // Finnhub returns 'c' for current price
       if (data.c && data.c > 0) {
         return {
-          ticker,
+          ticker, // Return original ticker from database, not Finnhub format
           price: data.c,
           currency: this.DEFAULT_CURRENCY,
         };
       }
 
-      console.warn(`[PortfolioService] No valid price data for ${ticker}`);
+      console.warn(`[PortfolioService] No valid price data for ${ticker} (tried as ${finnhubTicker})`);
       return null;
     } catch (error) {
       console.error(`[PortfolioService] Error fetching price for ${ticker}:`, error);

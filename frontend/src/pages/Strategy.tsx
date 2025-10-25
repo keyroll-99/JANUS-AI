@@ -1,10 +1,3 @@
-const Strategy = () => {
-  return (
-    <div className="strategy">
-      <h1>Strategia</h1>
-      <p>Definiuj swoją strategię inwestycyjną</p>
-    </div>
-  );
-};
+import { StrategyPage } from './strategy/StrategyPage';
 
-export const Component = Strategy;
+export const Component = StrategyPage;

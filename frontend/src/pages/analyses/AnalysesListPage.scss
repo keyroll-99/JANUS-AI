@@ -1,0 +1,105 @@
+/**
+ * AnalysesListPage component styles
+ */
+
+.analyses-list-page {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  min-height: calc(100vh - 64px);
+
+  &__header {
+    margin-bottom: 24px;
+
+    h2 {
+      margin-bottom: 16px;
+      color: #262626;
+      font-weight: 600;
+    }
+  }
+
+  &__stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    margin-bottom: 16px;
+
+    .ant-statistic {
+      .ant-statistic-title {
+        color: #8c8c8c;
+        font-size: 14px;
+      }
+
+      .ant-statistic-content {
+        color: #262626;
+        font-size: 24px;
+        font-weight: 500;
+      }
+    }
+  }
+
+  &__new-btn {
+    margin-top: 8px;
+  }
+
+  &__pagination {
+    margin-top: 24px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+  }
+
+  .ant-card {
+    border-radius: 8px;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03), 
+                0 1px 6px -1px rgba(0, 0, 0, 0.02), 
+                0 2px 4px 0 rgba(0, 0, 0, 0.02);
+  }
+
+  .ant-empty {
+    padding: 48px 0;
+
+    .ant-empty-description {
+      color: #8c8c8c;
+      font-size: 16px;
+    }
+  }
+
+  .ant-list {
+    .ant-list-item {
+      padding: 0;
+      border: none;
+    }
+  }
+
+  @media (max-width: 768px) {
+    padding: 16px;
+
+    &__header {
+      h2 {
+        font-size: 20px;
+      }
+    }
+
+    &__stats {
+      gap: 16px;
+
+      .ant-statistic-content {
+        font-size: 20px;
+      }
+    }
+
+    &__new-btn {
+      width: 100%;
+    }
+  }
+
+  @media (max-width: 576px) {
+    padding: 12px;
+
+    &__stats {
+      flex-direction: column;
+      gap: 12px;
+    }
+  }
+}

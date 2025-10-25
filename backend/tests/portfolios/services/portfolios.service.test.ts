@@ -392,4 +392,180 @@ describe('PortfolioService', () => {
       expect(otherItem!.percentage).toBeLessThan(1);
     });
   });
+
+  describe('Ticker Format Mapping', () => {
+    it('should map Polish stock tickers from XTB format (.PL) to Finnhub format (.WA)', async () => {
+      const mockPolishTransactions = [
+        {
+          user_id: mockUserId,
+          account_type_id: 1,
+          ticker: 'CDR.PL',
+          quantity: 100,
+          total_amount: 5000.0,
+          commission: 10,
+          transaction_date: '2025-01-01',
+          transaction_types: { name: 'BUY' },
+        },
+        {
+          user_id: mockUserId,
+          account_type_id: 1,
+          ticker: 'PKO.PL',
+          quantity: 50,
+          total_amount: 2500.0,
+          commission: 5,
+          transaction_date: '2025-01-15',
+          transaction_types: { name: 'BUY' },
+        },
+      ];
+
+      // Mock transactions query
+      const transactionsChain = {
+        select: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis(),
+        not: jest.fn().mockResolvedValue({
+          data: mockPolishTransactions,
+          error: null,
+        }),
+      };
+
+      (supabase.from as jest.Mock).mockImplementation((table: string) => {
+        if (table === 'transactions') {
+          return transactionsChain;
+        }
+        if (table === 'portfolio_snapshots') {
+          const snapshotsChain = {
+            select: jest.fn().mockReturnThis(),
+            eq: jest.fn().mockReturnThis(),
+            gte: jest.fn().mockReturnThis(),
+            order: jest.fn().mockResolvedValue({
+              data: [],
+              error: null,
+            }),
+          };
+          return snapshotsChain;
+        }
+        return {};
+      });
+
+      // Mock fetch to verify correct ticker format is used
+      const fetchMock = jest.fn();
+      (global.fetch as jest.Mock) = fetchMock;
+
+      fetchMock.mockImplementation((url: string) => {
+        // Verify that .WA format is used, not .PL
+        if (url.includes('CDR.WA')) {
+          return Promise.resolve({
+            ok: true,
+            json: () => Promise.resolve({ c: 52.5 }),
+          });
+        }
+        if (url.includes('PKO.WA')) {
+          return Promise.resolve({
+            ok: true,
+            json: () => Promise.resolve({ c: 51.0 }),
+          });
+        }
+        // If .PL format is used (incorrect), return error
+        if (url.includes('.PL')) {
+          return Promise.resolve({
+            ok: false,
+            status: 404,
+            json: () => Promise.resolve({ error: 'Symbol not found' }),
+          });
+        }
+        return Promise.resolve({
+          ok: false,
+          status: 404,
+        });
+      });
+
+      const result = await portfolioService.getDashboardData(mockUserId);
+
+      // Verify API was called with .WA format
+      expect(fetchMock).toHaveBeenCalledWith(
+        expect.stringContaining('CDR.WA')
+      );
+      expect(fetchMock).toHaveBeenCalledWith(
+        expect.stringContaining('PKO.WA')
+      );
+
+      // Verify .PL format was NOT used
+      expect(fetchMock).not.toHaveBeenCalledWith(
+        expect.stringContaining('CDR.PL')
+      );
+      expect(fetchMock).not.toHaveBeenCalledWith(
+        expect.stringContaining('PKO.PL')
+      );
+
+      // Verify prices were fetched successfully
+      expect(result.summary.totalValue).toBeGreaterThan(0);
+    });
+
+    it('should not modify US stock tickers', async () => {
+      const mockUSTransactions = [
+        {
+          user_id: mockUserId,
+          account_type_id: 1,
+          ticker: 'AAPL',
+          quantity: 10,
+          total_amount: 1500.0,
+          commission: 0,
+          transaction_date: '2025-01-01',
+          transaction_types: { name: 'BUY' },
+        },
+      ];
+
+      const transactionsChain = {
+        select: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis(),
+        not: jest.fn().mockResolvedValue({
+          data: mockUSTransactions,
+          error: null,
+        }),
+      };
+
+      (supabase.from as jest.Mock).mockImplementation((table: string) => {
+        if (table === 'transactions') {
+          return transactionsChain;
+        }
+        if (table === 'portfolio_snapshots') {
+          const snapshotsChain = {
+            select: jest.fn().mockReturnThis(),
+            eq: jest.fn().mockReturnThis(),
+            gte: jest.fn().mockReturnThis(),
+            order: jest.fn().mockResolvedValue({
+              data: [],
+              error: null,
+            }),
+          };
+          return snapshotsChain;
+        }
+        return {};
+      });
+
+      const fetchMock = jest.fn();
+      (global.fetch as jest.Mock) = fetchMock;
+
+      fetchMock.mockImplementation((url: string) => {
+        if (url.includes('AAPL')) {
+          return Promise.resolve({
+            ok: true,
+            json: () => Promise.resolve({ c: 155.0 }),
+          });
+        }
+        return Promise.resolve({
+          ok: false,
+          status: 404,
+        });
+      });
+
+      await portfolioService.getDashboardData(mockUserId);
+
+      // Verify API was called with original AAPL ticker
+      expect(fetchMock).toHaveBeenCalledWith(
+        expect.stringContaining('AAPL')
+      );
+    });
+  });
 });
+

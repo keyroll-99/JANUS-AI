@@ -1,10 +1,3 @@
-const AnalysisList = () => {
-  return (
-    <div className="analysis-list">
-      <h1>Historia analiz</h1>
-      <p>Lista wszystkich analiz portfela</p>
-    </div>
-  );
-};
+import { AnalysesListPage } from '../analyses/AnalysesListPage';
 
-export const Component = AnalysisList;
+export const Component = AnalysesListPage;

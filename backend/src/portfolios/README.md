@@ -51,11 +51,88 @@ Returns complete dashboard data for authenticated user.
 
 ### Market Data Integration
 
-The module integrates with **Finnhub API** for real-time market prices.
+The module integrates with **multiple market data APIs** for comprehensive coverage:
 
-**Configuration**: Set `FINNHUB_API_KEY` in `.env` file.
+**Primary API: Finnhub**
+- Configuration: Set `FINNHUB_API_KEY` in `.env` file
+- Coverage: US markets (NYSE, NASDAQ, etc.)
+- Free tier: 60 API calls/minute
+- Used for: All tickers initially
 
-**Fallback**: If API key is not configured or API fails, the service falls back to mock prices for development.
+**Fallback API #1: Stooq (for Polish stocks)**
+- Configuration: No API key needed (free, public API)
+- Coverage: Warsaw Stock Exchange (GPW) - Polish stocks
+- Rate limit: No documented limit
+- Used for: Polish stocks (.PL) when Finnhub returns 403
+
+**Fallback API #2: Alpha Vantage (optional)**
+- Configuration: Set `ALPHA_VANTAGE_API_KEY` in `.env` file (optional)
+- Coverage: Global markets including GPW
+- Free tier: 25 API calls/day
+- Used for: Secondary fallback if Stooq fails
+
+**Cascading fallback strategy**:
+1. Try **Finnhub** first for all tickers
+2. If Finnhub returns 403 for Polish stocks (.PL):
+   - Try **Stooq** (free, no API key)
+   - If Stooq fails, try **Alpha Vantage** (if API key configured)
+3. If all APIs fail, fall back to mock prices (development only)
+
+#### Ticker Format Mapping
+
+XTB exports use different ticker formats than Finnhub API:
+- **XTB Format**: `CDR.PL` (Polish stocks), `TSLA.US` (US stocks)
+- **Finnhub Format**: `CDR.WA` (Warsaw Stock Exchange), `TSLA` (no suffix for US)
+
+The service automatically converts ticker formats:
+```typescript
+// Polish stocks (GPW - Warsaw Stock Exchange)
+CDR.PL  → CDR.WA
+PKO.PL  → PKO.WA
+PKN.PL  → PKN.WA
+
+// US stocks (remove .US suffix)
+TSLA.US → TSLA
+AAPL.US → AAPL
+NVDA.US → NVDA
+
+// Already correct format (no conversion)
+AAPL    → AAPL
+GOOGL   → GOOGL
+```
+
+**Supported Exchanges**:
+- 🇵🇱 Warsaw Stock Exchange (GPW): `.PL` → `.WA`
+- 🇺🇸 US Markets: `.US` → _(removed)_, or no suffix
+
+**⚠️ API Coverage and Limitations**
+
+**Finnhub (Primary)**:
+- ✅ **US Markets**: Fully supported (NYSE, NASDAQ, etc.)
+- ❌ **Warsaw Stock Exchange (GPW)**: Not available in free tier (returns 403)
+
+**Stooq (Fallback for Polish stocks - Recommended)**:
+- ✅ **Warsaw Stock Exchange (GPW)**: Fully supported and up-to-date
+- ✅ **Free**: No API key required
+- ✅ **No rate limits**: Unlimited requests
+- 🎯 **Specialization**: Polish market data provider
+
+**Alpha Vantage (Secondary fallback - Optional)**:
+- ✅ **Global markets**: Wide coverage
+- ⚠️ **Rate limit**: 25 API calls/day (free tier)
+- ℹ️ **Note**: Free tier doesn't support Warsaw Stock Exchange directly
+
+**System behavior**:
+1. 🇺🇸 **US stocks** (AAPL, TSLA, etc.) → Fetched from Finnhub
+2. 🇵🇱 **Polish stocks** (CDR.PL, PKO.PL, etc.) → Finnhub (403) → **Stooq** ✅
+3. ❌ **All APIs fail** → Falls back to mock prices with warning
+
+**Recommendations**:
+1. **For Polish stocks**: No additional configuration needed - Stooq works out of the box!
+2. **For US stocks**: Set `FINNHUB_API_KEY` for real-time data
+3. **Optional**: Set `ALPHA_VANTAGE_API_KEY` for additional fallback coverage
+
+If you encounter issues with other exchanges, the mapping logic can be extended in `portfolios.service.ts` → `mapTickerToFinnhub()` method.
 
 ### In-Memory Caching
 

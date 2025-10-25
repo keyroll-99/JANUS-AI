@@ -25,11 +25,15 @@ export const apiClient = async <T = unknown>(
 
   const url = `${config.apiUrl}${endpoint}`;
   
+  console.log('[apiClient] Making request:', { url, method: options.method });
+  
   try {
     const response = await fetch(url, {
       ...options,
       headers,
     });
+
+    console.log('[apiClient] Response:', { url, status: response.status, ok: response.ok });
 
     // Handle 401 Unauthorized
     if (response.status === 401) {

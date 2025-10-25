@@ -20,6 +20,8 @@ interface Config {
   marketData: {
     finnhubApiKey: string;
     finnhubBaseUrl: string;
+    alphaVantageApiKey: string;
+    alphaVantageBaseUrl: string;
   };
   ai: {
     claude: {
@@ -54,6 +56,8 @@ const config: Config = {
   marketData: {
     finnhubApiKey: process.env.FINNHUB_API_KEY || '',
     finnhubBaseUrl: 'https://finnhub.io/api/v1',
+    alphaVantageApiKey: process.env.ALPHA_VANTAGE_API_KEY || '',
+    alphaVantageBaseUrl: 'https://www.alphavantage.co/query',
   },
   ai: {
     claude: {

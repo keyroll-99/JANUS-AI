@@ -1,0 +1,85 @@
+/**
+ * AnalysisDetailPage component styles
+ */
+
+.analysis-detail-page {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  min-height: calc(100vh - 64px);
+
+  &__breadcrumb {
+    margin-bottom: 24px;
+    font-size: 14px;
+
+    .ant-breadcrumb-link {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #595959;
+      transition: color 0.3s;
+
+      &:hover {
+        color: #1890ff;
+      }
+    }
+
+    .ant-breadcrumb-separator {
+      color: #d9d9d9;
+    }
+  }
+
+  &__header {
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  &__back-btn {
+    margin-bottom: 16px;
+  }
+
+  &__title {
+    margin-bottom: 0 !important;
+    color: #262626;
+    font-weight: 600;
+  }
+
+  .ant-card {
+    border-radius: 8px;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03), 
+                0 1px 6px -1px rgba(0, 0, 0, 0.02), 
+                0 2px 4px 0 rgba(0, 0, 0, 0.02);
+  }
+
+  .ant-alert {
+    border-radius: 8px;
+  }
+
+  @media (max-width: 768px) {
+    padding: 16px;
+
+    &__breadcrumb {
+      font-size: 13px;
+    }
+
+    &__header {
+      flex-direction: column;
+    }
+
+    &__title {
+      font-size: 20px;
+    }
+  }
+
+  @media (max-width: 576px) {
+    padding: 12px;
+
+    &__breadcrumb {
+      .ant-breadcrumb-link span {
+        display: none;
+      }
+    }
+  }
+}

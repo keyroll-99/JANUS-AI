@@ -93,3 +93,14 @@ export interface DashboardState {
 }
 
 export * from './transactions.types';
+export * from './strategy.types';
+export * from './analysis.types';
+export type {
+  RegisterFormValues,
+  RegisterRequestDto,
+  RegisterResponse,
+  LoginFormValues,
+  LoginRequestDto,
+  LoginResponse,
+  ApiError,
+} from './auth.types';

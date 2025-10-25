@@ -31,7 +31,7 @@ const Dashboard = () => {
   };
 
   const handleAnalyzeClick = () => {
-    navigate('/analyses');
+    navigate('/analysis');
   };
 
   const handleTransactionsClick = () => {
