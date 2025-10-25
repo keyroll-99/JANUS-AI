@@ -2,6 +2,8 @@ import { StrategyService } from '../../../src/strategies/strategies.service';
 import { supabase } from '../../../src/shared/config/supabase';
 import { AppError } from '../../../src/shared/errors/AppError';
 import { StrategyDto } from '../../../src/strategies/strategies.types';
+import { SupabaseClient } from '@supabase/supabase-js';
+import { Database } from '../../../src/shared/config/database.types';
 
 // Mock Supabase client
 jest.mock('../../../src/shared/config/supabase', () => ({
@@ -13,9 +15,11 @@ jest.mock('../../../src/shared/config/supabase', () => ({
 describe('StrategyService', () => {
   let strategyService: StrategyService;
   const mockUserId = 'user-123';
+  let mockSupabaseClient: SupabaseClient<Database>;
 
   beforeEach(() => {
     strategyService = new StrategyService();
+    mockSupabaseClient = supabase as unknown as SupabaseClient<Database>;
     jest.clearAllMocks();
   });
 
@@ -40,7 +44,7 @@ describe('StrategyService', () => {
 
       (supabase.from as jest.Mock).mockReturnValue(mockChain);
 
-      const result = await strategyService.getStrategy(mockUserId);
+      const result = await strategyService.getStrategy(mockSupabaseClient, mockUserId);
 
       expect(supabase.from).toHaveBeenCalledWith('investment_strategies');
       expect(mockChain.select).toHaveBeenCalledWith(
@@ -70,8 +74,8 @@ describe('StrategyService', () => {
 
       (supabase.from as jest.Mock).mockReturnValue(mockChain);
 
-      await expect(strategyService.getStrategy(mockUserId)).rejects.toThrow(AppError);
-      await expect(strategyService.getStrategy(mockUserId)).rejects.toMatchObject({
+      await expect(strategyService.getStrategy(mockSupabaseClient, mockUserId)).rejects.toThrow(AppError);
+      await expect(strategyService.getStrategy(mockSupabaseClient, mockUserId)).rejects.toMatchObject({
         statusCode: 404,
         message: 'Strategia inwestycyjna nie została znaleziona',
       });
@@ -91,7 +95,7 @@ describe('StrategyService', () => {
 
       (supabase.from as jest.Mock).mockReturnValue(mockChain);
 
-      await expect(strategyService.getStrategy(mockUserId)).rejects.toThrow(
+      await expect(strategyService.getStrategy(mockSupabaseClient, mockUserId)).rejects.toThrow(
         'Database connection error'
       );
     });
@@ -137,7 +141,7 @@ describe('StrategyService', () => {
         .mockReturnValueOnce(mockSelectChain)
         .mockReturnValueOnce(mockInsertChain);
 
-      const result = await strategyService.createStrategy(mockUserId, strategyData);
+      const result = await strategyService.createStrategy(mockSupabaseClient, mockUserId, strategyData);
 
       expect(result).toEqual({
         id: 'strategy-123',
@@ -171,10 +175,10 @@ describe('StrategyService', () => {
 
       (supabase.from as jest.Mock).mockReturnValue(mockChain);
 
-      await expect(strategyService.createStrategy(mockUserId, strategyData)).rejects.toThrow(
+      await expect(strategyService.createStrategy(mockSupabaseClient, mockUserId, strategyData)).rejects.toThrow(
         AppError
       );
-      await expect(strategyService.createStrategy(mockUserId, strategyData)).rejects.toMatchObject({
+      await expect(strategyService.createStrategy(mockSupabaseClient, mockUserId, strategyData)).rejects.toMatchObject({
         statusCode: 409,
         message: 'Strategia inwestycyjna już istnieje dla tego użytkownika',
       });
@@ -207,7 +211,7 @@ describe('StrategyService', () => {
         .mockReturnValueOnce(mockSelectChain)
         .mockReturnValueOnce(mockInsertChain);
 
-      await expect(strategyService.createStrategy(mockUserId, strategyData)).rejects.toThrow(
+      await expect(strategyService.createStrategy(mockSupabaseClient, mockUserId, strategyData)).rejects.toThrow(
         'Insert failed'
       );
     });
@@ -241,7 +245,7 @@ describe('StrategyService', () => {
 
       (supabase.from as jest.Mock).mockReturnValue(mockChain);
 
-      const result = await strategyService.updateStrategy(mockUserId, strategyData);
+      const result = await strategyService.updateStrategy(mockSupabaseClient, mockUserId, strategyData);
 
       expect(result).toEqual({
         id: 'strategy-123',
@@ -274,10 +278,10 @@ describe('StrategyService', () => {
 
       (supabase.from as jest.Mock).mockReturnValue(mockChain);
 
-      await expect(strategyService.updateStrategy(mockUserId, strategyData)).rejects.toThrow(
+      await expect(strategyService.updateStrategy(mockSupabaseClient, mockUserId, strategyData)).rejects.toThrow(
         AppError
       );
-      await expect(strategyService.updateStrategy(mockUserId, strategyData)).rejects.toMatchObject({
+      await expect(strategyService.updateStrategy(mockSupabaseClient, mockUserId, strategyData)).rejects.toMatchObject({
         statusCode: 404,
         message: 'Strategia inwestycyjna nie została znaleziona',
       });
@@ -298,7 +302,7 @@ describe('StrategyService', () => {
 
       (supabase.from as jest.Mock).mockReturnValue(mockChain);
 
-      await expect(strategyService.updateStrategy(mockUserId, strategyData)).rejects.toThrow(
+      await expect(strategyService.updateStrategy(mockSupabaseClient, mockUserId, strategyData)).rejects.toThrow(
         'Update failed'
       );
     });

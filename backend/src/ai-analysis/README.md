@@ -1,12 +1,45 @@
 # AI Analysis Module
 
 ## Overview
-The AI Analysis module handles all functionality related to AI-powered portfolio analysis. It allows users to request portfolio analyses, view historical analyses, and receive AI-generated recommendations for their investment portfolios.
+The AI Analysis module handles all functionality related to AI-powered portfolio analysis. It uses **advanced prompt engineering** to generate high-quality, personalized investment recommendations based on user's portfolio data and investment strategy.
 
-## Features
-- **Request Portfolio Analysis**: Trigger a new AI analysis of user's portfolio (with rate limiting)
-- **View Analysis Details**: Retrieve detailed information about a specific analysis including recommendations
-- **List Historical Analyses**: Browse paginated list of past analyses
+## Key Features
+- **🤖 Advanced AI Analysis**: Sophisticated prompt engineering for contextual, actionable recommendations
+- **📊 Portfolio Metrics**: Automatic calculation of concentration risk, diversification score, and performance metrics
+- **🎯 Personalized Recommendations**: Tailored to user's risk profile, time horizon, and investment goals
+- **📈 Historical Tracking**: Browse and compare past analyses to track advice evolution
+- **⚡ Rate Limiting**: Configurable daily limits to manage API costs
+
+## How It Works
+
+### 1. Analysis Request Flow
+```
+User Request → Rate Limit Check → Strategy Validation → Initialize Analysis Record
+                                                              ↓
+User Gets Analysis ID ← Background Process → AI Provider → Prompt Builder
+                              ↓                                     ↓
+                        Save Results                    Portfolio Data + Metrics
+```
+
+### 2. Prompt Engineering System
+
+The module uses a sophisticated **PromptBuilder** that constructs comprehensive analysis prompts with:
+
+- **System Instructions**: Define AI role as expert financial advisor with clear principles
+- **Portfolio Context**: Complete portfolio overview with metrics and performance data
+- **Analysis Requirements**: Specific questions and priorities based on user profile
+- **Output Format**: Precise JSON schema for consistent, parseable responses
+
+📖 **See [PROMPT_ENGINEERING.md](./PROMPT_ENGINEERING.md) for detailed documentation**
+
+### 3. Portfolio Metrics
+
+Automatically calculated metrics include:
+
+- **Concentration Risk**: Top 1/3/5 positions percentage
+- **Diversification Score**: Herfindahl Index with interpretation
+- **Performance**: Total P&L, winners/losers count
+- **Position Details**: Individual holdings with profit/loss analysis
 
 ## API Endpoints
 

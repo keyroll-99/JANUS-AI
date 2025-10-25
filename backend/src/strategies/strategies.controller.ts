@@ -19,7 +19,7 @@ export class StrategyController {
   ): Promise<void> {
     try {
       const userId = req.user.id;
-      const strategy = await strategyService.getStrategy(userId);
+      const strategy = await strategyService.getStrategy(req.supabaseClient, userId);
 
       res.status(200).json(strategy);
     } catch (error) {
@@ -40,7 +40,7 @@ export class StrategyController {
       const userId = req.user.id;
       const strategyData = req.body as StrategyDto;
 
-      const strategy = await strategyService.createStrategy(userId, strategyData);
+      const strategy = await strategyService.createStrategy(req.supabaseClient, userId, strategyData);
 
       res.status(201).json(strategy);
     } catch (error) {
@@ -61,7 +61,7 @@ export class StrategyController {
       const userId = req.user.id;
       const strategyData = req.body as StrategyDto;
 
-      const strategy = await strategyService.updateStrategy(userId, strategyData);
+      const strategy = await strategyService.updateStrategy(req.supabaseClient, userId, strategyData);
 
       res.status(200).json(strategy);
     } catch (error) {

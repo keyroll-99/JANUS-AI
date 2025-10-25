@@ -65,7 +65,7 @@ router.post(
   '/',
   requireAuth,
   (req, res, next) =>
-    analysisController.triggerNewAnalysis(req as any, res, next)
+    analysisController.triggerAnalysis(req as any, res, next)
 );
 
 export default router;

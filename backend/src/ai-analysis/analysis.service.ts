@@ -5,8 +5,9 @@
  * - Performs background AI analysis
  */
 
+import { SupabaseClient } from '@supabase/supabase-js';
 import { supabaseAdmin } from '../shared/config/supabase';
-import { Tables } from '../shared/config/database.types';
+import { Tables, Database } from '../shared/config/database.types';
 import { AIProviderFactory, PortfolioData, Position } from './providers';
 import {
   AnalysisDetailsDto,
@@ -20,23 +21,26 @@ import {
   PreconditionFailedError,
   TooManyRequestsError,
 } from './analysis.errors';
+import { PromptBuilder } from './prompt-builder';
 
 type AIRecommendation = Tables<'ai_recommendations'>;
 
 export class AnalysisService {
   /**
    * Get detailed information about a specific analysis
+   * @param supabaseClient - User's Supabase client (respects RLS)
    * @param userId - Authenticated user ID
    * @param analysisId - UUID of the analysis to retrieve
    * @returns Detailed analysis with recommendations
    * @throws {AnalysisNotFoundError} When analysis doesn't exist or doesn't belong to user
    */
   async getAnalysisDetails(
+    supabaseClient: SupabaseClient<Database>,
     userId: string,
     analysisId: string
   ): Promise<AnalysisDetailsDto> {
     // Fetch analysis with its recommendations in a single query
-    const { data: analysis, error: analysisError } = await supabaseAdmin
+    const { data: analysis, error: analysisError } = await supabaseClient
       .from('ai_analyses')
       .select(
         `
@@ -85,12 +89,14 @@ export class AnalysisService {
 
   /**
    * Get paginated list of user's analyses
+   * @param supabaseClient - User's Supabase client (respects RLS)
    * @param userId - Authenticated user ID
    * @param page - Page number (1-indexed)
    * @param limit - Items per page (max 100)
    * @returns Paginated list of analyses
    */
   async getAnalyses(
+    supabaseClient: SupabaseClient<Database>,
     userId: string,
     page: number,
     limit: number
@@ -100,13 +106,13 @@ export class AnalysisService {
     // Execute both queries in parallel for better performance
     const [{ data: analyses, error: dataError }, { count, error: countError }] =
       await Promise.all([
-        supabaseAdmin
+        supabaseClient
           .from('ai_analyses')
           .select('id, analysis_date, portfolio_value, ai_model')
           .eq('user_id', userId)
           .order('analysis_date', { ascending: false })
           .range(offset, offset + limit - 1),
-        supabaseAdmin
+        supabaseClient
           .from('ai_analyses')
           .select('*', { count: 'exact', head: true })
           .eq('user_id', userId),
@@ -140,22 +146,27 @@ export class AnalysisService {
 
   /**
    * Trigger a new portfolio analysis (synchronous phase)
+   * @param supabaseClient - User's Supabase client (respects RLS)
    * @param userId - Authenticated user ID
    * @returns Analysis initiation confirmation with ID
    * @throws {TooManyRequestsError} When user exceeds rate limit
    * @throws {PreconditionFailedError} When user has no investment strategy
    */
-  async triggerAnalysis(userId: string): Promise<AnalysisInitiatedDto> {
+  async triggerAnalysis(
+    supabaseClient: SupabaseClient<Database>,
+    userId: string
+  ): Promise<AnalysisInitiatedDto> {
     // Check rate limit
-    await this.checkRateLimit(userId);
+    await this.checkRateLimit(supabaseClient, userId);
 
     // Check if user has an investment strategy
-    await this.checkInvestmentStrategy(userId);
+    await this.checkInvestmentStrategy(supabaseClient, userId);
 
     // Create initial analysis record
-    const analysisId = await this.initializeAnalysis(userId);
+    const analysisId = await this.initializeAnalysis(supabaseClient, userId);
 
     // Trigger background analysis (non-blocking)
+    // Note: Background process uses supabaseAdmin for performance
     this.performBackgroundAnalysis(userId, analysisId).catch((error) => {
       console.error(
         `[AnalysisService] Background analysis failed for user ${userId}:`,
@@ -175,8 +186,11 @@ export class AnalysisService {
    * Check if user has exceeded their daily analysis limit
    * @private
    */
-  private async checkRateLimit(userId: string): Promise<void> {
-    const { data: rateLimit, error } = await supabaseAdmin
+  private async checkRateLimit(
+    supabaseClient: SupabaseClient<Database>,
+    userId: string
+  ): Promise<void> {
+    const { data: rateLimit, error } = await supabaseClient
       .from('user_rate_limits')
       .select('daily_analyses_count, daily_limit, last_analysis_date')
       .eq('user_id', userId)
@@ -189,7 +203,7 @@ export class AnalysisService {
 
     // Create rate limit record if it doesn't exist
     if (!rateLimit) {
-      await supabaseAdmin.from('user_rate_limits').insert({
+      await supabaseClient.from('user_rate_limits').insert({
         user_id: userId,
         daily_analyses_count: 0,
         daily_limit: 3, // Default limit
@@ -205,7 +219,7 @@ export class AnalysisService {
 
     if (lastAnalysisDate !== today) {
       // Reset counter for new day
-      await supabaseAdmin
+      await supabaseClient
         .from('user_rate_limits')
         .update({
           daily_analyses_count: 0,
@@ -225,8 +239,11 @@ export class AnalysisService {
    * Check if user has defined an investment strategy
    * @private
    */
-  private async checkInvestmentStrategy(userId: string): Promise<void> {
-    const { data: strategy, error } = await supabaseAdmin
+  private async checkInvestmentStrategy(
+    supabaseClient: SupabaseClient<Database>,
+    userId: string
+  ): Promise<void> {
+    const { data: strategy, error } = await supabaseClient
       .from('investment_strategies')
       .select('id')
       .eq('user_id', userId)
@@ -241,11 +258,17 @@ export class AnalysisService {
    * Initialize analysis record in database
    * @private
    */
-  private async initializeAnalysis(userId: string): Promise<string> {
+  private async initializeAnalysis(
+    supabaseClient: SupabaseClient<Database>,
+    userId: string
+  ): Promise<string> {
     // Get current portfolio value
-    const portfolioValue = await this.getCurrentPortfolioValue(userId);
+    const portfolioValue = await this.getCurrentPortfolioValue(
+      supabaseClient,
+      userId
+    );
 
-    const { data: analysis, error } = await supabaseAdmin
+    const { data: analysis, error } = await supabaseClient
       .from('ai_analyses')
       .insert({
         user_id: userId,
@@ -261,14 +284,14 @@ export class AnalysisService {
     }
 
     // Increment rate limit counter
-    const { data: currentLimit } = await supabaseAdmin
+    const { data: currentLimit } = await supabaseClient
       .from('user_rate_limits')
       .select('daily_analyses_count, monthly_analyses_count, total_analyses_count')
       .eq('user_id', userId)
       .single();
 
     if (currentLimit) {
-      await supabaseAdmin
+      await supabaseClient
         .from('user_rate_limits')
         .update({
           daily_analyses_count: currentLimit.daily_analyses_count + 1,
@@ -286,8 +309,11 @@ export class AnalysisService {
    * Calculate current portfolio value
    * @private
    */
-  private async getCurrentPortfolioValue(userId: string): Promise<number> {
-    const { data: positions } = await supabaseAdmin
+  private async getCurrentPortfolioValue(
+    supabaseClient: SupabaseClient<Database>,
+    userId: string
+  ): Promise<number> {
+    const { data: positions } = await supabaseClient
       .from('user_portfolio_positions')
       .select('total_cost')
       .eq('user_id', userId);
@@ -316,9 +342,8 @@ export class AnalysisService {
       // 2. Get AI provider
       const provider = AIProviderFactory.getProvider();
 
-      // 3. TODO: Get custom prompt from database or use default
-      // For now, using a simple default prompt - YOU will customize this later
-      const prompt = this.buildSimplePrompt(portfolioData);
+      // 3. Build comprehensive analysis prompt using PromptBuilder
+      const prompt = PromptBuilder.buildAnalysisPrompt(portfolioData);
 
       // 4. Call AI API
       console.log(`[AnalysisService] Calling AI provider: ${provider.name}`);
@@ -372,13 +397,26 @@ export class AnalysisService {
 
   /**
    * Gather all portfolio data for analysis
+   * Uses supabaseAdmin to calculate positions from transactions in real-time
+   * This ensures fresh data without relying on materialized view refresh
    */
   private async gatherPortfolioData(userId: string): Promise<PortfolioData> {
-    // Get positions
-    const { data: positions } = await supabaseAdmin
-      .from('user_portfolio_positions')
-      .select('*')
-      .eq('user_id', userId);
+    // Get all user's transactions with transaction types
+    const { data: transactions, error: txError } = await supabaseAdmin
+      .from('transactions')
+      .select(`
+        *,
+        transaction_types!inner(name)
+      `)
+      .eq('user_id', userId)
+      .order('transaction_date', { ascending: true });
+
+    if (txError) {
+      console.error('[AnalysisService] Failed to fetch transactions:', txError);
+      throw new Error('Failed to fetch portfolio transactions');
+    }
+
+    console.log(`[AnalysisService] Fetched ${transactions?.length || 0} transactions for user ${userId}`);
 
     // Get strategy
     const { data: strategy } = await supabaseAdmin
@@ -391,30 +429,83 @@ export class AnalysisService {
       throw new Error('Investment strategy not found');
     }
 
-    const totalValue =
-      positions?.reduce((sum, pos) => sum + (pos.total_cost || 0), 0) || 0;
+    // Calculate positions from transactions
+    const positionsMap = new Map<string, {
+      ticker: string;
+      quantity: number;
+      totalCost: number;
+      transactions: number;
+    }>();
 
-    const portfolioPositions: Position[] =
-      positions?.map((pos) => {
-        const quantity = pos.total_quantity || 0;
-        const averagePrice = pos.avg_price || 0;
-        const totalCost = pos.total_cost || 0;
-        // TODO: Fetch current prices from market data API
-        // For now, use average price as current price (no profit/loss calculation)
-        const currentPrice = averagePrice;
-        const currentValue = currentPrice * quantity;
+    transactions?.forEach((tx) => {
+      const txType = (tx.transaction_types as any)?.name;
+      if (!tx.ticker || !['BUY', 'SELL'].includes(txType)) {
+        return; // Skip non-stock transactions
+      }
 
-        return {
-          ticker: pos.ticker || '',
-          quantity,
-          averagePrice,
-          currentPrice,
-          totalValue: totalCost,
-          percentageOfPortfolio: totalValue > 0 ? (totalCost / totalValue) * 100 : 0,
-          profitLoss: currentValue - totalCost,
-          profitLossPercentage: totalCost > 0 ? ((currentValue - totalCost) / totalCost) * 100 : 0,
-        };
-      }) || [];
+      const existing = positionsMap.get(tx.ticker) || {
+        ticker: tx.ticker,
+        quantity: 0,
+        totalCost: 0,
+        transactions: 0,
+      };
+
+      if (txType === 'BUY') {
+        existing.quantity += tx.quantity || 0;
+        existing.totalCost += (tx.total_amount || 0) + (tx.commission || 0);
+        console.log(`[AnalysisService] BUY ${tx.ticker}: +${tx.quantity} @ ${tx.price}, totalCost now: ${existing.totalCost}`);
+      } else if (txType === 'SELL') {
+        existing.quantity -= tx.quantity || 0;
+        existing.totalCost -= (tx.total_amount || 0) - (tx.commission || 0);
+        console.log(`[AnalysisService] SELL ${tx.ticker}: -${tx.quantity} @ ${tx.price}, totalCost now: ${existing.totalCost}`);
+      }
+
+      existing.transactions++;
+      positionsMap.set(tx.ticker, existing);
+    });
+
+    // Filter out closed positions (quantity <= 0) and calculate metrics
+    const openPositions = Array.from(positionsMap.values())
+      .filter(pos => pos.quantity > 0);
+
+    console.log(`[AnalysisService] Found ${openPositions.length} open positions from ${positionsMap.size} unique tickers`);
+    
+    if (openPositions.length === 0) {
+      console.warn(`[AnalysisService] No open positions found for user ${userId}`);
+    }
+
+    // Calculate portfolio positions with current prices
+    const portfolioPositions: Position[] = openPositions.map((pos) => {
+      const averagePrice = pos.quantity > 0 ? pos.totalCost / pos.quantity : 0;
+      // TODO: Fetch current prices from market data API
+      // For now, use average price as current price (no profit/loss calculation)
+      const currentPrice = averagePrice;
+      const currentValue = currentPrice * pos.quantity;
+
+      console.log(`[AnalysisService] ${pos.ticker}: qty=${pos.quantity}, avgPrice=${averagePrice.toFixed(2)}, currentValue=${currentValue.toFixed(2)}`);
+
+      return {
+        ticker: pos.ticker,
+        quantity: pos.quantity,
+        averagePrice,
+        currentPrice,
+        totalValue: currentValue, // Use current value, not cost
+        percentageOfPortfolio: 0, // Will be calculated after totalValue
+        profitLoss: currentValue - pos.totalCost,
+        profitLossPercentage: pos.totalCost > 0 ? ((currentValue - pos.totalCost) / pos.totalCost) * 100 : 0,
+      };
+    });
+
+    // Calculate total portfolio value (sum of current values)
+    const totalValue = portfolioPositions.reduce((sum, pos) => sum + pos.totalValue, 0);
+
+    // Update percentage of portfolio for each position
+    portfolioPositions.forEach((pos) => {
+      pos.percentageOfPortfolio = totalValue > 0 ? (pos.totalValue / totalValue) * 100 : 0;
+    });
+
+    console.log(`[AnalysisService] Calculated ${portfolioPositions.length} positions from ${transactions?.length || 0} transactions for user ${userId}`);
+    console.log(`[AnalysisService] Total portfolio value: $${totalValue.toFixed(2)}`);
 
     return {
       userId,
@@ -429,27 +520,5 @@ export class AnalysisService {
         investmentGoals: strategy.investment_goals || '',
       },
     };
-  }
-
-  /**
-   * Build a simple default prompt
-   * TODO: You will customize this prompt based on your needs
-   */
-  private buildSimplePrompt(portfolioData: PortfolioData): string {
-    const { totalValue, positions, strategy } = portfolioData;
-
-    const positionsList = positions
-      .map((p) => `${p.ticker}: $${p.totalValue.toFixed(2)} (${p.percentageOfPortfolio.toFixed(1)}%)`)
-      .join(', ');
-
-    return `Analyze this investment portfolio and provide recommendations in JSON format.
-
-Portfolio Value: $${totalValue.toFixed(2)}
-Risk Level: ${strategy.riskLevel}
-Time Horizon: ${strategy.timeHorizon}
-Goals: ${strategy.investmentGoals}
-Positions: ${positionsList}
-
-Respond with JSON: {"summary": "...", "recommendations": [{"ticker": "...", "action": "BUY|SELL|HOLD|REDUCE|INCREASE", "reasoning": "...", "confidence": "LOW|MEDIUM|HIGH"}]}`;
   }
 }

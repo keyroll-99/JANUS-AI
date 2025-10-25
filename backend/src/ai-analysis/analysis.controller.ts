@@ -24,6 +24,7 @@ export class AnalysisController {
       const { id } = req.params;
 
       const analysis = await this.analysisService.getAnalysisDetails(
+        req.supabaseClient,
         userId,
         id
       );
@@ -49,6 +50,7 @@ export class AnalysisController {
       const limit = Number(req.query.limit) || 10;
 
       const analyses = await this.analysisService.getAnalyses(
+        req.supabaseClient,
         userId,
         page,
         limit
@@ -64,7 +66,7 @@ export class AnalysisController {
    * POST /api/v1/analyses
    * Trigger a new portfolio analysis
    */
-  async triggerNewAnalysis(
+  async triggerAnalysis(
     req: AuthenticatedRequest,
     res: Response,
     next: NextFunction
@@ -72,7 +74,10 @@ export class AnalysisController {
     try {
       const userId = req.user.id;
 
-      const result = await this.analysisService.triggerAnalysis(userId);
+      const result = await this.analysisService.triggerAnalysis(
+        req.supabaseClient,
+        userId
+      );
 
       res.status(202).json(result);
     } catch (error) {

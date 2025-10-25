@@ -2,6 +2,8 @@ import { StrategyDto, StrategyResponseDto } from './strategies.types';
 import { supabase } from '../shared/config/supabase';
 import { Tables, TablesInsert, TablesUpdate } from '../shared/config/database.types';
 import { AppError } from '../shared/errors/AppError';
+import { SupabaseClient } from '@supabase/supabase-js';
+import { Database } from '../shared/config/database.types';
 
 type InvestmentStrategy = Tables<'investment_strategies'>;
 
@@ -16,8 +18,11 @@ export class StrategyService {
    * Get user's investment strategy
    * @throws {AppError} When strategy is not found (404)
    */
-  async getStrategy(userId: string): Promise<StrategyResponseDto> {
-    const { data, error } = await supabase
+  async getStrategy(
+    supabaseClient: SupabaseClient<Database>,
+    userId: string
+  ): Promise<StrategyResponseDto> {
+    const { data, error } = await supabaseClient
       .from(this.tableName)
       .select('id, time_horizon, risk_level, investment_goals, updated_at')
       .eq('user_id', userId)
@@ -37,9 +42,13 @@ export class StrategyService {
    * Create new investment strategy for user
    * @throws {AppError} When strategy already exists (409)
    */
-  async createStrategy(userId: string, strategyData: StrategyDto): Promise<StrategyResponseDto> {
+  async createStrategy(
+    supabaseClient: SupabaseClient<Database>,
+    userId: string,
+    strategyData: StrategyDto
+  ): Promise<StrategyResponseDto> {
     // Check if strategy already exists
-    const { data: existingStrategy } = await supabase
+    const { data: existingStrategy } = await supabaseClient
       .from(this.tableName)
       .select('id')
       .eq('user_id', userId)
@@ -57,7 +66,7 @@ export class StrategyService {
       investment_goals: strategyData.investmentGoals,
     };
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from(this.tableName)
       .insert(insertData)
       .select('id, time_horizon, risk_level, investment_goals, updated_at')
@@ -74,7 +83,11 @@ export class StrategyService {
    * Update existing investment strategy for user
    * @throws {AppError} When strategy is not found (404)
    */
-  async updateStrategy(userId: string, strategyData: StrategyDto): Promise<StrategyResponseDto> {
+  async updateStrategy(
+    supabaseClient: SupabaseClient<Database>,
+    userId: string,
+    strategyData: StrategyDto
+  ): Promise<StrategyResponseDto> {
     const updateData: TablesUpdate<'investment_strategies'> = {
       time_horizon: strategyData.timeHorizon,
       risk_level: strategyData.riskLevel,
@@ -82,7 +95,7 @@ export class StrategyService {
       updated_at: new Date().toISOString(),
     };
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from(this.tableName)
       .update(updateData)
       .eq('user_id', userId)
