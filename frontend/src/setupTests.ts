@@ -32,9 +32,11 @@ afterAll(() => {
 // Prevent act() errors from failing tests
 // Override the global error handler to catch AggregateError from act()
 const originalAddEventListener = globalThis.addEventListener;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 (globalThis as any).addEventListener = (
   type: string,
   listener: EventListenerOrEventListenerObject,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ...args: any[]
 ) => {
   if (type === 'error') {

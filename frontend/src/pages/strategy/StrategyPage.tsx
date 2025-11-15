@@ -25,7 +25,7 @@ export const StrategyPage = () => {
         await createStrategy(values);
       }
       setShowCreateForm(false);
-    } catch (err) {
+    } catch (_err) {
       // Błąd jest już obsłużony w hooku (message.error)
     }
   };

@@ -34,21 +34,21 @@ export const LoginForm = ({ onSuccess, onError }: LoginFormProps) => {
         password: values.password,
       });
       onSuccess(response);
-    } catch (err: any) {
+    } catch (err: unknown) {
       let errorMessage = 'Wystąpił nieoczekiwany błąd.';
 
       if (err instanceof TypeError && err.message === 'Failed to fetch') {
         errorMessage =
           'Brak połączenia z internetem. Sprawdź swoje połączenie i spróbuj ponownie.';
-      } else if (err.statusCode === 401) {
+      } else if (err && typeof err === 'object' && 'statusCode' in err && err.statusCode === 401) {
         errorMessage = 'Nieprawidłowy adres e-mail lub hasło.';
-      } else if (err.message) {
-        errorMessage = err.message;
+      } else if (err && typeof err === 'object' && 'message' in err) {
+        errorMessage = String(err.message);
       }
 
       setError(errorMessage);
-      if (onError) {
-        onError(err);
+      if (onError && err && typeof err === 'object') {
+        onError(err as ApiError);
       }
     } finally {
       setLoading(false);

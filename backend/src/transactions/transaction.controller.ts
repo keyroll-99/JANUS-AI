@@ -49,7 +49,7 @@ export class TransactionController {
       const userId = req.user.id;
   const supabaseClient = req.supabaseClient;
       // Use validatedParams from validateDto middleware
-      const { id } = (req as any).validatedParams as UuidParamDto;
+      const { id } = (req as AuthenticatedRequest & { validatedParams: UuidParamDto }).validatedParams;
 
   const transaction = await transactionService.getTransactionById(supabaseClient, userId, id);
 

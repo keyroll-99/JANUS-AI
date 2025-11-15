@@ -8,7 +8,8 @@
     "start": "node dist/server.js",
     "dev": "tsx watch src/server.ts",
     "dev:nodemon": "nodemon --watch 'src/**/*.ts' --exec tsx src/server.ts",
-    "lint": "eslint 'src/**/*.ts'",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
     "test": "jest",
     "test:watch": "jest --watch",
     "types:generate": "npx supabase gen types typescript --local --schema public > src/shared/config/database.types.ts"

@@ -105,7 +105,7 @@ export class TransactionService {
       .single();
 
     if (error || !data) {
-      const notFoundError = new Error('Transaction not found') as any;
+      const notFoundError = new Error('Transaction not found') as Error & { status: number };
       notFoundError.status = 404;
       throw notFoundError;
     }
@@ -295,7 +295,7 @@ export class TransactionService {
     if (error) {
       const validationError = new Error(
         `Failed to import transactions: ${error.message}`
-      ) as any;
+      ) as Error & { status: number };
       validationError.status = 422;
       throw validationError;
     }

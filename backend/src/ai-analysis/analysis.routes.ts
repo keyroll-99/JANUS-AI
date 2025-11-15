@@ -30,8 +30,8 @@ router.get(
   '/:id',
   requireAuth,
   validateDto(GetAnalysisParams, 'params'),
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (req, res, next) =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     analysisController.getAnalysisById(req as any, res, next)
 );
 
@@ -49,8 +49,8 @@ router.get(
   '/',
   requireAuth,
   validateDto(GetAnalysesQuery, 'query'),
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (req, res, next) =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     analysisController.getAnalyses(req as any, res, next)
 );
 
@@ -66,8 +66,8 @@ router.get(
 router.post(
   '/',
   requireAuth,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (req, res, next) =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     analysisController.triggerAnalysis(req as any, res, next)
 );
 

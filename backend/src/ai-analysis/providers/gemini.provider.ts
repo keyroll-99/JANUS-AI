@@ -40,7 +40,8 @@ export class GeminiProvider extends BaseAIProvider {
    */
   async analyze(
     prompt: string,
-    _portfolioData: PortfolioData
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    portfolioData: PortfolioData
   ): Promise<AIAnalysisResult> {
     if (!this.isConfigured()) {
       throw new Error('Gemini API key is not configured');

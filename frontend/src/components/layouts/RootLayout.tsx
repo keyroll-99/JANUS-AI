@@ -43,7 +43,7 @@ const RootLayout = () => {
       logout();
       message.success('Wylogowano pomyślnie');
       navigate('/login');
-    } catch (error) {
+    } catch (_error) {
       // Nawet jeśli API zwróci błąd, wyloguj użytkownika lokalnie
       logout();
       navigate('/login');

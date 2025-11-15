@@ -111,8 +111,7 @@ export const useAnalyses = (): UseAnalysesReturn => {
    */
   useEffect(() => {
     fetchAnalyses(page, limit);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, limit]);
+  }, [page, limit, fetchAnalyses]);
 
   return {
     analyses,

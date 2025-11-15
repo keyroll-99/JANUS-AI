@@ -55,8 +55,10 @@ export const DiversificationCard = ({
         value: `${datum.value.toLocaleString('pl-PL', { minimumFractionDigits: 2 })} PLN (${datum.percentage.toFixed(2)}%)`,
       }),
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onReady: (plot: any) => {
       if (onTickerClick) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         plot.on('element:click', (evt: any) => {
           const ticker = evt.data?.data?.ticker;
           if (ticker) {
