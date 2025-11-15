@@ -273,7 +273,7 @@ Odpowiedz WYŁĄCZNIE w formacie JSON (bez dodatkowego tekstu ani formatowania m
   /**
    * Helper: Format strategy for display
    */
-  private static formatStrategy(strategy: any): string {
+  private static formatStrategy(strategy: { riskLevel: string; timeHorizon: string }): string {
     const risk = strategy.riskLevel.toLowerCase().replace('_', ' ');
     const horizon = strategy.timeHorizon.toLowerCase().replace('_', ' ');
     return `${risk} risk, ${horizon} horizon`;

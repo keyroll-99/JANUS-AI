@@ -1,11 +1,8 @@
 import { StrategyDto, StrategyResponseDto } from './strategies.types';
-import { supabase } from '../shared/config/supabase';
-import { Tables, TablesInsert, TablesUpdate } from '../shared/config/database.types';
+import { TablesInsert, TablesUpdate } from '../shared/config/database.types';
 import { AppError } from '../shared/errors/AppError';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { Database } from '../shared/config/database.types';
-
-type InvestmentStrategy = Tables<'investment_strategies'>;
 
 /**
  * StrategyService handles all business logic for investment strategies

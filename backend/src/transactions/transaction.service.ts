@@ -1,6 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '../shared/config/database.types';
-import { Tables } from '../shared/config/database.types';
 import { randomUUID } from 'crypto';
 import {
   TransactionDto,
@@ -68,7 +67,7 @@ export class TransactionService {
     }
 
     // Map database rows to DTOs
-    const transactions: TransactionDto[] = (data || []).map((row: any) =>
+    const transactions: TransactionDto[] = (data || []).map((row: Record<string, unknown>) =>
       this.mapToDto(row)
     );
 
@@ -118,23 +117,25 @@ export class TransactionService {
    * Map database row to TransactionDto
    * @private
    */
-  private mapToDto(row: any): TransactionDto {
+  private mapToDto(row: Record<string, unknown>): TransactionDto {
+    const transactionTypes = row.transaction_types as { name: string };
+    const accountTypes = row.account_types as { name: string };
     return {
-      id: row.id,
-      userId: row.user_id,
-      transactionDate: row.transaction_date,
-      transactionType: row.transaction_types.name,
-      accountType: row.account_types.name,
-      ticker: row.ticker,
-      quantity: row.quantity ? parseFloat(row.quantity) : null,
-      price: row.price ? parseFloat(row.price) : null,
-      totalAmount: parseFloat(row.total_amount),
-      commission: parseFloat(row.commission),
-      notes: row.notes,
-      importedFromFile: row.imported_from_file,
-      importBatchId: row.import_batch_id,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at,
+      id: row.id as string,
+      userId: row.user_id as string,
+      transactionDate: row.transaction_date as string,
+      transactionType: transactionTypes.name,
+      accountType: accountTypes.name,
+      ticker: row.ticker as string | null,
+      quantity: row.quantity ? parseFloat(row.quantity as string) : null,
+      price: row.price ? parseFloat(row.price as string) : null,
+      totalAmount: parseFloat(row.total_amount as string),
+      commission: parseFloat(row.commission as string),
+      notes: row.notes as string | null,
+      importedFromFile: row.imported_from_file as boolean,
+      importBatchId: row.import_batch_id as string | null,
+      createdAt: row.created_at as string,
+      updatedAt: row.updated_at as string,
     };
   }
 
@@ -192,7 +193,7 @@ export class TransactionService {
     await this.getTransactionById(supabaseClient, userId, transactionId);
 
     // Build update object with only provided fields
-    const updateData: any = {};
+    const updateData: Record<string, unknown> = {};
     if (dto.transactionDate !== undefined) updateData.transaction_date = dto.transactionDate;
     if (dto.transactionTypeId !== undefined)
       updateData.transaction_type_id = dto.transactionTypeId;
@@ -314,7 +315,7 @@ export class TransactionService {
     userId: string,
     xtbTx: XtbTransactionRow,
     importBatchId: string
-  ): any {
+  ): Record<string, unknown> {
     const transactionTypeId = XtbParser.mapTransactionType(xtbTx.type);
     const accountTypeId = XtbParser.mapAccountType(xtbTx.comment);
 
@@ -349,7 +350,7 @@ export class TransactionService {
    * @private
    * @throws Error if validation fails
    */
-  private validateTransactions(transactions: any[]): void {
+  private validateTransactions(transactions: Record<string, unknown>[]): void {
     if (transactions.length === 0) {
       throw new Error('No transactions to import');
     }
@@ -397,7 +398,7 @@ export class TransactionService {
       .single();
 
     if (error || !data) {
-      const validationError = new Error('Invalid account type selected for import') as any;
+      const validationError = new Error('Invalid account type selected for import') as Error & { status: number };
       validationError.status = 400;
       throw validationError;
     }

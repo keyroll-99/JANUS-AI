@@ -32,17 +32,23 @@ export abstract class BaseAIProvider implements IAIProvider {
   /**
    * Validate AI response structure
    */
-  protected validateResponse(response: any): AIAnalysisResult {
-    if (!response.summary || typeof response.summary !== 'string') {
+  protected validateResponse(response: unknown): AIAnalysisResult {
+    if (!response || typeof response !== 'object') {
+      throw new Error('Invalid AI response: not an object');
+    }
+    
+    const res = response as Record<string, unknown>;
+    
+    if (!res.summary || typeof res.summary !== 'string') {
       throw new Error('Invalid AI response: missing or invalid summary');
     }
 
-    if (!Array.isArray(response.recommendations)) {
+    if (!Array.isArray(res.recommendations)) {
       throw new Error('Invalid AI response: recommendations must be an array');
     }
 
     // Validate each recommendation
-    for (const rec of response.recommendations) {
+    for (const rec of res.recommendations) {
       if (!rec.ticker || typeof rec.ticker !== 'string') {
         throw new Error('Invalid recommendation: missing ticker');
       }

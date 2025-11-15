@@ -42,7 +42,7 @@ export class ClaudeProvider extends BaseAIProvider {
    */
   async analyze(
     prompt: string,
-    portfolioData: PortfolioData
+    _portfolioData: PortfolioData
   ): Promise<AIAnalysisResult> {
     if (!this.isConfigured()) {
       throw new Error('Claude API key is not configured');
@@ -71,7 +71,7 @@ export class ClaudeProvider extends BaseAIProvider {
         const result = this.parseResponse(analysisText);
 
         return this.validateResponse(result);
-      } catch (error: any) {
+      } catch (error: unknown) {
         if (axios.isAxiosError(error)) {
           const status = error.response?.status;
           const message = error.response?.data?.error?.message || error.message;
@@ -95,7 +95,7 @@ export class ClaudeProvider extends BaseAIProvider {
   /**
    * Parse Claude response text to extract JSON
    */
-  private parseResponse(text: string): any {
+  private parseResponse(text: string): unknown {
     try {
       // Try to find JSON in the response
       const jsonMatch = text.match(/\{[\s\S]*\}/);

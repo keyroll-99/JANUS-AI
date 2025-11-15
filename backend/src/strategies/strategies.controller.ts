@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
 import { AuthenticatedRequest } from '../shared/middlewares/requireAuth';
 import { strategyService } from './strategies.service';
 import { StrategyDto } from './strategies.types';

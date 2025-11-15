@@ -32,7 +32,7 @@ async function analyzeXtbFile() {
     let rowsPrinted = 0;
     worksheet.eachRow((row, rowNumber) => {
       if (rowsPrinted < 20) {
-        const values: any[] = [];
+        const values: unknown[] = [];
         row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
           values[colNumber - 1] = cell.value;
         });

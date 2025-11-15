@@ -43,7 +43,7 @@ export const fileFilter = (
     callback(
       new Error(
         'Invalid file type. Only Excel files (.xlsx, .xls) are allowed.'
-      ) as any
+      )
     );
   }
 };

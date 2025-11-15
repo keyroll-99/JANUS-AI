@@ -58,7 +58,7 @@ export class AIProviderFactory {
    */
   static getConfiguredProviders(): string[] {
     return Array.from(this.providers.entries())
-      .filter(([_, provider]) => provider.isConfigured())
+      .filter(([, provider]) => provider.isConfigured())
       .map(([name]) => name);
   }
 
