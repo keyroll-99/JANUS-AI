@@ -1,0 +1,22 @@
+{
+  "name": "@janus/root",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:report": "playwright show-report",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "test:unit:backend": "cd backend && npm test",
+    "test:unit:frontend": "cd frontend && npm test",
+    "test:all": "npm run test:unit:backend && npm run test:unit:frontend && npm run test:e2e",
+    "test:coverage": "npm run test:unit:backend -- --coverage && npm run test:unit:frontend -- --coverage"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.1",
+    "@types/node": "^22.0.0"
+  }
+}

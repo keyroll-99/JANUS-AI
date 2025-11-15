@@ -89,3 +89,5 @@ frontend/.env
 .well-known/
 
 
+test-results/
+playwright-report/

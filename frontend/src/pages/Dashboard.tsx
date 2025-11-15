@@ -1,9 +1,7 @@
-import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Row, Col, Button, Alert, message } from 'antd';
 import { ReloadOutlined } from '@ant-design/icons';
 import { useDashboardData } from '../shared/hooks/useDashboardData';
-import { useAuth } from '../shared/contexts/AuthContext';
 import { PortfolioSummaryCard } from '../components/dashboard/PortfolioSummaryCard';
 import { QuickActionsCard } from '../components/dashboard/QuickActionsCard';
 import { PortfolioHistoryCard } from '../components/dashboard/PortfolioHistoryCard';
@@ -16,15 +14,7 @@ import { EmptyState } from '../components/dashboard/EmptyState';
  */
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
   const { data, loading, error, refreshing, refresh } = useDashboardData();
-
-  // Przekierowanie na login jeśli użytkownik nie jest zalogowany
-  useEffect(() => {
-    if (!isAuthenticated) {
-      navigate('/login', { replace: true });
-    }
-  }, [isAuthenticated, navigate]);
 
   const handleImportClick = () => {
     navigate('/transactions');

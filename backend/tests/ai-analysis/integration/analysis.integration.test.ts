@@ -1,8 +1,7 @@
 import request from 'supertest';
 import app from '../../../src/app';
-import { supabaseAdmin } from '../../../src/shared/config/supabase';
 
-// Helper to create properly chained Supabase mock
+// Helper to create properly chained Supabase mock (not used - remove if not needed)
 const createSupabaseMock = (finalValue: any) => {
   const mock: any = {};
   mock.select = jest.fn().mockReturnValue(mock);
@@ -16,6 +15,17 @@ const createSupabaseMock = (finalValue: any) => {
 };
 
 // Mock Supabase
+const mockSupabaseClient = {
+  from: jest.fn().mockReturnThis(),
+  select: jest.fn().mockReturnThis(),
+  insert: jest.fn().mockReturnThis(),
+  update: jest.fn().mockReturnThis(),
+  eq: jest.fn().mockReturnThis(),
+  single: jest.fn(),
+  order: jest.fn().mockReturnThis(),
+  range: jest.fn(),
+};
+
 jest.mock('../../../src/shared/config/supabase', () => {
   const mockAuth = {
     getUser: jest.fn(),
@@ -29,6 +39,7 @@ jest.mock('../../../src/shared/config/supabase', () => {
       from: jest.fn(),
       auth: mockAuth,
     },
+    createUserSupabaseClient: jest.fn(() => mockSupabaseClient),
   };
 });
 
@@ -73,7 +84,7 @@ describe('Analysis Endpoints Integration Tests', () => {
     };
 
     it('should return analysis details with 200 status', async () => {
-      (supabaseAdmin.from as jest.Mock).mockReturnValue(
+      (mockSupabaseClient.from as jest.Mock).mockReturnValue(
         createSupabaseMock({ data: mockAnalysisData, error: null })
       );
 
@@ -119,7 +130,7 @@ describe('Analysis Endpoints Integration Tests', () => {
     });
 
     it('should return 404 when analysis not found', async () => {
-      (supabaseAdmin.from as jest.Mock).mockReturnValue(
+      (mockSupabaseClient.from as jest.Mock).mockReturnValue(
         createSupabaseMock({ 
           data: null, 
           error: { code: 'PGRST116', message: 'Not found' } 
@@ -169,7 +180,7 @@ describe('Analysis Endpoints Integration Tests', () => {
         }),
       };
 
-      (supabaseAdmin.from as jest.Mock)
+      (mockSupabaseClient.from as jest.Mock)
         .mockReturnValueOnce(mockDataChain)
         .mockReturnValueOnce(mockCountChain);
 
@@ -222,7 +233,7 @@ describe('Analysis Endpoints Integration Tests', () => {
         }),
       };
 
-      (supabaseAdmin.from as jest.Mock)
+      (mockSupabaseClient.from as jest.Mock)
         .mockReturnValueOnce(mockDataChain)
         .mockReturnValueOnce(mockCountChain);
 
@@ -300,7 +311,7 @@ describe('Analysis Endpoints Integration Tests', () => {
       const mockAnalysisId = 'new-analysis-123';
       const today = new Date().toISOString().split('T')[0];
 
-      (supabaseAdmin.from as jest.Mock)
+      (mockSupabaseClient.from as jest.Mock)
         // Rate limit check (.single())
         .mockReturnValueOnce(
           createSupabaseMock({ data: { ...mockRateLimit, last_analysis_date: today }, error: null })
@@ -340,7 +351,7 @@ describe('Analysis Endpoints Integration Tests', () => {
     it('should return 402 when user has no strategy', async () => {
       const today = new Date().toISOString().split('T')[0];
 
-      (supabaseAdmin.from as jest.Mock)
+      (mockSupabaseClient.from as jest.Mock)
         // Rate limit check passes
         .mockReturnValueOnce(
           createSupabaseMock({ data: { ...mockRateLimit, last_analysis_date: today }, error: null })
@@ -367,7 +378,7 @@ describe('Analysis Endpoints Integration Tests', () => {
       };
 
       // Rate limit check returns exceeded limit
-      (supabaseAdmin.from as jest.Mock).mockReturnValueOnce(
+      (mockSupabaseClient.from as jest.Mock).mockReturnValueOnce(
         createSupabaseMock({ data: exceededRateLimit, error: null })
       );
 

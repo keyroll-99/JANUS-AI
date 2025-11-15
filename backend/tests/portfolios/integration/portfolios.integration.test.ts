@@ -25,13 +25,33 @@ jest.mock('../../../src/shared/config/config', () => ({
 }));
 
 // Mock Supabase
-jest.mock('../../../src/shared/config/supabase');
+const mockSupabaseClient = {
+  from: jest.fn().mockReturnThis(),
+  select: jest.fn().mockReturnThis(),
+  insert: jest.fn().mockReturnThis(),
+  update: jest.fn().mockReturnThis(),
+  eq: jest.fn().mockReturnThis(),
+  not: jest.fn().mockReturnThis(),
+  gte: jest.fn().mockReturnThis(),
+  order: jest.fn().mockReturnThis(),
+  limit: jest.fn().mockReturnThis(),
+  single: jest.fn(),
+};
+
+jest.mock('../../../src/shared/config/supabase', () => ({
+  supabase: {
+    auth: {
+      getUser: jest.fn(),
+    },
+  },
+  createUserSupabaseClient: jest.fn(() => mockSupabaseClient),
+}));
 
 // Now import app and other dependencies
 // @ts-nocheck
 import request from 'supertest';
 import app from '../../../src/app';
-import { supabase } from '../../../src/shared/config/supabase';
+import { supabase } from '../../../src/shared/config/supabase'; // This is mocked above
 
 // Mock fetch globally
 global.fetch = jest.fn();
@@ -110,6 +130,9 @@ describe('Dashboard Endpoint Integration Tests', () => {
     ];
 
     beforeEach(() => {
+      // Reset all mocks
+      jest.clearAllMocks();
+
       // Mock transactions query
       const transactionsChain = {
         select: jest.fn().mockReturnThis(),
@@ -131,7 +154,8 @@ describe('Dashboard Endpoint Integration Tests', () => {
         }),
       };
 
-      (supabase.from as jest.Mock).mockImplementation((table: string) => {
+      // Setup mockSupabaseClient responses
+      (mockSupabaseClient.from as jest.Mock).mockImplementation((table: string) => {
         if (table === 'transactions') {
           return transactionsChain;
         }
@@ -257,7 +281,7 @@ describe('Dashboard Endpoint Integration Tests', () => {
     });
 
     it('should return 500 when database query fails', async () => {
-      (supabase.from as jest.Mock).mockImplementation((table: string) => {
+      (mockSupabaseClient.from as jest.Mock).mockImplementation((table: string) => {
         if (table === 'transactions') {
           return {
             select: jest.fn().mockReturnThis(),
@@ -280,7 +304,7 @@ describe('Dashboard Endpoint Integration Tests', () => {
     });
 
     it('should handle empty portfolio gracefully', async () => {
-      (supabase.from as jest.Mock).mockImplementation((table: string) => {
+      (mockSupabaseClient.from as jest.Mock).mockImplementation((table: string) => {
         if (table === 'transactions') {
           return {
             select: jest.fn().mockReturnThis(),

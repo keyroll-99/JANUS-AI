@@ -3,7 +3,23 @@ import app from '../../../src/app';
 import { supabase } from '../../../src/shared/config/supabase';
 
 // Mock Supabase
-jest.mock('../../../src/shared/config/supabase');
+const mockSupabaseClient = {
+  from: jest.fn().mockReturnThis(),
+  select: jest.fn().mockReturnThis(),
+  insert: jest.fn().mockReturnThis(),
+  update: jest.fn().mockReturnThis(),
+  eq: jest.fn().mockReturnThis(),
+  single: jest.fn(),
+};
+
+jest.mock('../../../src/shared/config/supabase', () => ({
+  supabase: {
+    auth: {
+      getUser: jest.fn(),
+    },
+  },
+  createUserSupabaseClient: jest.fn(() => mockSupabaseClient),
+}));
 
 describe('Strategy Endpoints Integration Tests', () => {
   const mockUserId = 'user-123';
@@ -43,7 +59,7 @@ describe('Strategy Endpoints Integration Tests', () => {
         }),
       };
 
-      (supabase.from as jest.Mock).mockReturnValue(mockChain);
+      (mockSupabaseClient.from as jest.Mock).mockReturnValue(mockChain);
 
       const response = await request(app)
         .get('/api/v1/strategy')
@@ -69,7 +85,7 @@ describe('Strategy Endpoints Integration Tests', () => {
         }),
       };
 
-      (supabase.from as jest.Mock).mockReturnValue(mockChain);
+      (mockSupabaseClient.from as jest.Mock).mockReturnValue(mockChain);
 
       const response = await request(app)
         .get('/api/v1/strategy')
@@ -123,7 +139,7 @@ describe('Strategy Endpoints Integration Tests', () => {
         }),
       };
 
-      (supabase.from as jest.Mock)
+      (mockSupabaseClient.from as jest.Mock)
         .mockReturnValueOnce(mockSelectChain)
         .mockReturnValueOnce(mockInsertChain);
 
@@ -156,7 +172,7 @@ describe('Strategy Endpoints Integration Tests', () => {
         }),
       };
 
-      (supabase.from as jest.Mock).mockReturnValue(mockChain);
+      (mockSupabaseClient.from as jest.Mock).mockReturnValue(mockChain);
 
       const response = await request(app)
         .post('/api/v1/strategy')
@@ -257,7 +273,7 @@ describe('Strategy Endpoints Integration Tests', () => {
         }),
       };
 
-      (supabase.from as jest.Mock).mockReturnValue(mockChain);
+      (mockSupabaseClient.from as jest.Mock).mockReturnValue(mockChain);
 
       const response = await request(app)
         .put('/api/v1/strategy')
@@ -285,7 +301,7 @@ describe('Strategy Endpoints Integration Tests', () => {
         }),
       };
 
-      (supabase.from as jest.Mock).mockReturnValue(mockChain);
+      (mockSupabaseClient.from as jest.Mock).mockReturnValue(mockChain);
 
       const response = await request(app)
         .put('/api/v1/strategy')
