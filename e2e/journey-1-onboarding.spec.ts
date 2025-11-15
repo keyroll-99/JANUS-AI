@@ -37,10 +37,9 @@ test.describe('Journey 1: New User Onboarding', () => {
     await test.step('Try to register with invalid email', async () => {
       await registerPage.goto();
       
-      await page.fill('input[placeholder*="email"]', 'invalid-email');
-      const passwordInputs = page.locator('input[type="password"]');
-      await passwordInputs.first().fill('TestPassword123!');
-      await passwordInputs.last().fill('TestPassword123!');
+      await page.fill('input#email', 'invalid-email');
+      await page.fill('input#password', 'TestPassword123!');
+      await page.fill('input#confirmPassword', 'TestPassword123!');
       await page.click('button[type="submit"]');
       
       const errorMessage = page.locator('.ant-form-item-explain-error');
@@ -55,10 +54,9 @@ test.describe('Journey 1: New User Onboarding', () => {
       await registerPage.goto();
       
       const testEmail = `test-${Date.now()}@example.com`;
-      await page.fill('input[placeholder*="email"]', testEmail);
-      const passwordInputs = page.locator('input[type="password"]');
-      await passwordInputs.first().fill('123');
-      await passwordInputs.last().fill('123');
+      await page.fill('input#email', testEmail);
+      await page.fill('input#password', '123');
+      await page.fill('input#confirmPassword', '123');
       await page.click('button[type="submit"]');
       
       const errorMessage = page.locator('.ant-form-item-explain-error, .ant-alert-error');
