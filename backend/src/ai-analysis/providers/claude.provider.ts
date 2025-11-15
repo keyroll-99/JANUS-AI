@@ -105,7 +105,7 @@ export class ClaudeProvider extends BaseAIProvider {
       }
 
       return JSON.parse(jsonMatch[0]);
-    } catch (error) {
+    } catch {
       console.error('[ClaudeProvider] Failed to parse response:', text);
       throw new Error('Failed to parse Claude response as JSON');
     }

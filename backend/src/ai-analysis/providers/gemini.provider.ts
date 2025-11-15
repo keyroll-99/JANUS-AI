@@ -121,7 +121,7 @@ export class GeminiProvider extends BaseAIProvider {
       }
 
       return JSON.parse(jsonMatch[0]);
-    } catch (error) {
+    } catch {
       console.error('[GeminiProvider] Failed to parse response:', text);
       throw new Error('Failed to parse Gemini response as JSON');
     }
