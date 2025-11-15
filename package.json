@@ -17,8 +17,10 @@
     "test:coverage": "npm run test:unit:backend -- --coverage && npm run test:unit:frontend -- --coverage"
   },
   "devDependencies": {
+    "@eslint/js": "^9.38.0",
     "@playwright/test": "^1.56.1",
     "@types/node": "^22.0.0",
+    "eslint": "^9.38.0",
     "globals": "^15.8.0",
     "typescript-eslint": "^7.16.1"
   }
