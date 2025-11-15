@@ -11,16 +11,16 @@ runs:
         cache: 'npm'
 
     - name: Install root dependencies
-      run: npm install
+      run: npm install --legacy-peer-deps
       shell: bash
 
     - name: Install backend dependencies
-      run: npm install
+      run: npm install --legacy-peer-deps
       working-directory: ./backend
       shell: bash
 
     - name: Install frontend dependencies
-      run: npm install
+      run: npm install --legacy-peer-deps
       working-directory: ./frontend
       shell: bash
 
