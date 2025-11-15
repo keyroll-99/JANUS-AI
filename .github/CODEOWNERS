@@ -1,0 +1,4 @@
+# Ten plik definiuje właścicieli kodu dla poszczególnych części projektu.
+# Każda linia to wzorzec pliku, po którym następuje jeden lub więcej recenzentów.
+
+*       @keyroll-99
