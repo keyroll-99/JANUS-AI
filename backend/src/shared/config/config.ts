@@ -42,9 +42,9 @@ const config: Config = {
   port: Number(process.env.PORT) || 3000,
   nodeEnv: process.env.NODE_ENV || 'development',
   supabase: {
-    url: process.env.SUPABASE_URL || '',
-    anonKey: process.env.SUPABASE_ANON_KEY || '',
-    serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
+    url: process.env.SUPABASE_URL || (process.env.NODE_ENV === 'test' ? 'https://test.supabase.co' : ''),
+    anonKey: process.env.SUPABASE_ANON_KEY || (process.env.NODE_ENV === 'test' ? 'test-anon-key' : ''),
+    serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY || (process.env.NODE_ENV === 'test' ? 'test-service-role-key' : ''),
   },
   cookie: {
     name: 'refreshToken',
