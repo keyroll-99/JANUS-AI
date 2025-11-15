@@ -11,6 +11,9 @@ import {
 } from './transaction.types';
 import { XtbParser, XtbTransactionRow } from './xtb-parser';
 
+// Type for transaction insert payload
+type TransactionInsert = Database['public']['Tables']['transactions']['Insert'];
+
 /**
  * TransactionService handles all business logic for transactions
  * Communicates with Supabase database and enforces authorization
@@ -275,7 +278,7 @@ export class TransactionService {
     }
 
     // Transform XTB transactions to our format
-    const transactionsToInsert = xtbTransactions.map((xtbTx) => {
+    const transactionsToInsert: TransactionInsert[] = xtbTransactions.map((xtbTx) => {
       const mapped = this.mapXtbTransaction(userId, xtbTx, importBatchId);
       if (manualAccountTypeId) {
         mapped.account_type_id = manualAccountTypeId;
@@ -315,7 +318,7 @@ export class TransactionService {
     userId: string,
     xtbTx: XtbTransactionRow,
     importBatchId: string
-  ): Record<string, unknown> {
+  ): TransactionInsert {
     const transactionTypeId = XtbParser.mapTransactionType(xtbTx.type);
     const accountTypeId = XtbParser.mapAccountType(xtbTx.comment);
 
@@ -350,7 +353,7 @@ export class TransactionService {
    * @private
    * @throws Error if validation fails
    */
-  private validateTransactions(transactions: Record<string, unknown>[]): void {
+  private validateTransactions(transactions: TransactionInsert[]): void {
     if (transactions.length === 0) {
       throw new Error('No transactions to import');
     }

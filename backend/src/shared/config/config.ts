@@ -75,8 +75,8 @@ const config: Config = {
   },
 };
 
-// Validate required Supabase configuration
-if (!config.supabase.url || !config.supabase.anonKey) {
+// Validate required Supabase configuration (skip in test environment)
+if (process.env.NODE_ENV !== 'test' && (!config.supabase.url || !config.supabase.anonKey)) {
   throw new Error(
     'Missing required Supabase configuration. Please check your .env file.'
   );
