@@ -46,8 +46,10 @@ Managing an investment portfolio, often scattered across different accounts (mai
 - **Key Libraries**: React Hook Form (forms), Recharts (charts)
 
 ### DevOps
-- **Containerization**: Docker
+- **Containerization**: Docker & Docker Compose
 - **CI/CD**: GitHub Actions
+
+> 📦 **Docker Support**: Complete Docker setup with multi-stage builds, security best practices, and development/production configurations. See [README.Docker.md](README.Docker.md) for details.
 
 ## 🏗️ Project Architecture
 
@@ -88,9 +90,34 @@ janus-ai/
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js (version specified in package.json - Volta recommended)
-- Docker and Docker Compose
+- Node.js 20+ (version specified in .nvmrc)
+- Docker and Docker Compose (for containerized setup)
 - Access to a Supabase instance
+
+### Quick Start with Docker 🐋
+
+**Recommended for production and easy setup:**
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/your-username/janus-ai.git
+cd janus-ai
+
+# 2. Copy and configure environment variables
+cp .env.example .env
+# Edit .env and fill in all required values
+
+# 3. Start all services with Docker Compose
+docker-compose up -d
+
+# 4. Access the application
+# Frontend: http://localhost:3000
+# Backend API: http://localhost:5000
+```
+
+For detailed Docker instructions, troubleshooting, and development setup, see [README.Docker.md](README.Docker.md).
+
+### Manual Setup (without Docker)
 
 ### 1. Clone the Repository
 ```bash
@@ -198,8 +225,10 @@ Zarządzanie portfelem inwestycyjnym, często rozproszonym między różne konta
 - **Kluczowe Biblioteki**: React Hook Form (formularze), Recharts (wykresy)
 
 ### DevOps
-- **Konteneryzacja**: Docker
+- **Konteneryzacja**: Docker & Docker Compose
 - **CI/CD**: GitHub Actions
+
+> 📦 **Wsparcie Docker**: Kompletna konfiguracja Docker z wieloetapowym budowaniem, najlepszymi praktykami bezpieczeństwa i konfiguracjami dla development/production. Zobacz [README.Docker.md](README.Docker.md) po szczegóły.
 
 ## 🏗️ Architektura Projektu
 
@@ -237,12 +266,37 @@ janus-ai/
     └── copilot-instructions.md # Wytyczne Kodowania AI
 ```
 
-## � Jak zacząć?
+## 🚀 Jak zacząć?
 
 ### Wymagania
-- Node.js (wersja określona w package.json - zalecane Volta)
-- Docker i Docker Compose
+- Node.js 20+ (wersja określona w .nvmrc)
+- Docker i Docker Compose (do uruchomienia w kontenerach)
 - Dostęp do instancji Supabase
+
+### Szybki start z Docker 🐋
+
+**Zalecane dla produkcji i łatwej konfiguracji:**
+
+```bash
+# 1. Sklonuj repozytorium
+git clone https://github.com/your-username/janus-ai.git
+cd janus-ai
+
+# 2. Skopiuj i skonfiguruj zmienne środowiskowe
+cp .env.example .env
+# Edytuj .env i uzupełnij wszystkie wymagane wartości
+
+# 3. Uruchom wszystkie serwisy z Docker Compose
+docker-compose up -d
+
+# 4. Dostęp do aplikacji
+# Frontend: http://localhost:3000
+# Backend API: http://localhost:5000
+```
+
+Szczegółowe instrukcje Docker, troubleshooting i konfiguracja development w [README.Docker.md](README.Docker.md).
+
+### Konfiguracja manualna (bez Dockera)
 
 ### 1. Klonowanie Repozytorium
 ```bash
