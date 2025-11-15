@@ -9,7 +9,6 @@ import transactionRouter from './transactions/transaction.routes';
 import strategyRouter from './strategies/strategies.routes';
 import portfolioRouter from './portfolios/portfolios.routes';
 import analysisRouter from './ai-analysis/analysis.routes';
-import config from './shared/config/config';
 import { initializeAIProviders } from './ai-analysis/providers';
 
 // Initialize AI providers

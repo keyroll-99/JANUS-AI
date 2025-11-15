@@ -66,6 +66,7 @@ export function Component() {
       },
     },
     tooltip: {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       formatter: (datum: any) => {
         return { name: 'Wartość', value: `${datum.value.toLocaleString('pl-PL')} PLN` };
       },

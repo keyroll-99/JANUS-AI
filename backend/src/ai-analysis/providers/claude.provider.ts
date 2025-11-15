@@ -42,6 +42,7 @@ export class ClaudeProvider extends BaseAIProvider {
    */
   async analyze(
     prompt: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     portfolioData: PortfolioData
   ): Promise<AIAnalysisResult> {
     if (!this.isConfigured()) {
@@ -71,7 +72,7 @@ export class ClaudeProvider extends BaseAIProvider {
         const result = this.parseResponse(analysisText);
 
         return this.validateResponse(result);
-      } catch (error: any) {
+      } catch (error: unknown) {
         if (axios.isAxiosError(error)) {
           const status = error.response?.status;
           const message = error.response?.data?.error?.message || error.message;
@@ -95,7 +96,7 @@ export class ClaudeProvider extends BaseAIProvider {
   /**
    * Parse Claude response text to extract JSON
    */
-  private parseResponse(text: string): any {
+  private parseResponse(text: string): unknown {
     try {
       // Try to find JSON in the response
       const jsonMatch = text.match(/\{[\s\S]*\}/);
@@ -104,7 +105,7 @@ export class ClaudeProvider extends BaseAIProvider {
       }
 
       return JSON.parse(jsonMatch[0]);
-    } catch (error) {
+    } catch {
       console.error('[ClaudeProvider] Failed to parse response:', text);
       throw new Error('Failed to parse Claude response as JSON');
     }

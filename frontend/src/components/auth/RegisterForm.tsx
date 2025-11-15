@@ -34,25 +34,25 @@ export const RegisterForm = ({ onSuccess, onError }: RegisterFormProps) => {
         password: values.password,
       });
       onSuccess(response);
-    } catch (err: any) {
+    } catch (err: unknown) {
       let errorMessage = 'Wystąpił nieoczekiwany błąd.';
 
       if (err instanceof TypeError && err.message === 'Failed to fetch') {
         errorMessage =
           'Brak połączenia z internetem. Sprawdź swoje połączenie i spróbuj ponownie.';
-      } else if (err.message) {
-        errorMessage = err.message;
+      } else if (err && typeof err === 'object' && 'message' in err) {
+        errorMessage = String(err.message);
       }
 
       // Specjalna obsługa dla błędu 409 (duplikat użytkownika)
-      if (err.statusCode === 409) {
+      if (err && typeof err === 'object' && 'statusCode' in err && err.statusCode === 409) {
         errorMessage =
           'Użytkownik o tym adresie e-mail już istnieje. Jeśli posiadasz już konto, zaloguj się.';
       }
 
       setError(errorMessage);
-      if (onError) {
-        onError(err);
+      if (onError && err && typeof err === 'object') {
+        onError(err as ApiError);
       }
     } finally {
       setLoading(false);

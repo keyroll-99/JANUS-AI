@@ -1,0 +1,45 @@
+name: 'Setup and Test'
+description: 'Sets up Node.js, installs dependencies, and runs linting and tests'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Use Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22.x'
+        cache: 'npm'
+
+    - name: Install root dependencies
+      run: npm install --legacy-peer-deps
+      shell: bash
+
+    - name: Install backend dependencies
+      run: npm install --legacy-peer-deps
+      working-directory: ./backend
+      shell: bash
+
+    - name: Install frontend dependencies
+      run: npm install --legacy-peer-deps
+      working-directory: ./frontend
+      shell: bash
+
+    - name: Run backend linting
+      run: npm run lint
+      working-directory: ./backend
+      shell: bash
+
+    - name: Run frontend linting
+      run: npm run lint
+      working-directory: ./frontend
+      shell: bash
+
+    - name: Run backend unit tests
+      run: npm test
+      working-directory: ./backend
+      shell: bash
+
+    - name: Run frontend unit tests
+      run: npm test
+      working-directory: ./frontend
+      shell: bash

@@ -25,11 +25,11 @@ export const validateDto = (schema: z.ZodSchema, type: ValidationType = 'body') 
       // Store validated data in a custom property to avoid read-only issues
       // For body/params we can update directly, but query is read-only
       if (type === 'query') {
-        (req as any).validatedQuery = validatedData;
+        (req as Request & { validatedQuery: unknown }).validatedQuery = validatedData;
       } else if (type === 'params') {
-        (req as any).validatedParams = validatedData;
+        (req as Request & { validatedParams: unknown }).validatedParams = validatedData;
       } else {
-        (req as any)[type] = validatedData;
+        (req as Request & Record<string, unknown>)[type] = validatedData;
       }
       
       next();

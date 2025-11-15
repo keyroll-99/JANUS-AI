@@ -1,22 +1,19 @@
-// This is a placeholder for your ESLint configuration.
-// You can extend it with your own rules.
-// For example, using Airbnb's config:
-// module.exports = {
-//   extends: 'airbnb-base',
-//   rules: {
-//     // your rules here
-//   },
-// };
+import globals from "globals";
+import pluginJs from "@eslint/js";
+import tseslint from "typescript-eslint";
 
-module.exports = {
-  "root": true,
-  "parser": "@typescript-eslint/parser",
-  "plugins": [
-    "@typescript-eslint"
-  ],
-  "extends": [
-    "eslint:recommended",
-    "plugin:@typescript-eslint/eslint-recommended",
-    "plugin:@typescript-eslint/recommended"
-  ]
-}
+export default [
+  {
+    ignores: ["**/node_modules/", "**/dist/", "playwright-report/", "test-results/"]
+  },
+  {
+    languageOptions: { 
+      globals: {
+        ...globals.node,
+        ...globals.jest
+      } 
+    }
+  },
+  pluginJs.configs.recommended,
+  ...tseslint.configs.recommended,
+];

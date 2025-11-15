@@ -52,6 +52,7 @@ export class XtbParser {
    */
   async parseFile(buffer: Buffer): Promise<XtbTransactionRow[]> {
     const workbook = new ExcelJS.Workbook();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await workbook.xlsx.load(buffer as any);
 
     const worksheet = workbook.getWorksheet(XtbParser.WORKSHEET_NAME);
@@ -121,7 +122,7 @@ export class XtbParser {
    * @param colIndex Column index (0-based)
    * @returns Cell value or null
    */
-  private getCellValue(row: ExcelJS.Row, colIndex: number): any {
+  private getCellValue(row: ExcelJS.Row, colIndex: number): unknown {
     const cell = row.getCell(colIndex + 1); // ExcelJS uses 1-based indexing
     return cell.value;
   }
@@ -131,7 +132,7 @@ export class XtbParser {
    * @param value Date value from Excel
    * @returns Date object
    */
-  private parseDate(value: any): Date {
+  private parseDate(value: unknown): Date {
     if (value instanceof Date) {
       return value;
     }

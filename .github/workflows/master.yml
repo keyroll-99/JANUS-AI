@@ -1,0 +1,15 @@
+name: Master Branch CI
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  quality-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup and Test
+        uses: ./.github/actions/setup-and-test

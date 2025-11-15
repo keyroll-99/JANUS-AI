@@ -14,7 +14,6 @@ import {
   AnalysisInitiatedDto,
   AnalysisListItemDto,
   PaginatedAnalysesDto,
-  RecommendationDto,
 } from './analysis.types';
 import {
   AnalysisNotFoundError,
@@ -438,7 +437,7 @@ export class AnalysisService {
     }>();
 
     transactions?.forEach((tx) => {
-      const txType = (tx.transaction_types as any)?.name;
+      const txType = (tx.transaction_types as { name: string })?.name;
       if (!tx.ticker || !['BUY', 'SELL'].includes(txType)) {
         return; // Skip non-stock transactions
       }

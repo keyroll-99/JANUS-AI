@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
 import { AuthenticatedRequest } from '../shared/middlewares/requireAuth';
 import { transactionService } from './transaction.service';
 import {
@@ -26,7 +26,7 @@ export class TransactionController {
       const userId = req.user.id;
   const supabaseClient = req.supabaseClient;
       // Use validatedQuery from validateDto middleware
-      const query = (req as any).validatedQuery as GetTransactionsQueryDto;
+      const query = (req as AuthenticatedRequest & { validatedQuery: GetTransactionsQueryDto }).validatedQuery;
 
   const result = await transactionService.getTransactions(supabaseClient, userId, query);
 
@@ -49,7 +49,7 @@ export class TransactionController {
       const userId = req.user.id;
   const supabaseClient = req.supabaseClient;
       // Use validatedParams from validateDto middleware
-      const { id } = (req as any).validatedParams as UuidParamDto;
+      const { id } = (req as AuthenticatedRequest & { validatedParams: UuidParamDto }).validatedParams;
 
   const transaction = await transactionService.getTransactionById(supabaseClient, userId, id);
 
@@ -94,7 +94,7 @@ export class TransactionController {
       const userId = req.user.id;
   const supabaseClient = req.supabaseClient;
       // Use validatedParams from validateDto middleware
-      const { id } = (req as any).validatedParams as UuidParamDto;
+      const { id } = (req as AuthenticatedRequest & { validatedParams: UuidParamDto }).validatedParams;
       const dto = req.body as UpdateTransactionDto;
 
   const transaction = await transactionService.updateTransaction(supabaseClient, userId, id, dto);
@@ -118,7 +118,7 @@ export class TransactionController {
       const userId = req.user.id;
   const supabaseClient = req.supabaseClient;
       // Use validatedParams from validateDto middleware
-      const { id } = (req as any).validatedParams as UuidParamDto;
+      const { id } = (req as AuthenticatedRequest & { validatedParams: UuidParamDto }).validatedParams;
 
   await transactionService.deleteTransaction(supabaseClient, userId, id);
 

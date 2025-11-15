@@ -2,6 +2,7 @@
   "name": "@janus/root",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
@@ -16,7 +17,12 @@
     "test:coverage": "npm run test:unit:backend -- --coverage && npm run test:unit:frontend -- --coverage"
   },
   "devDependencies": {
+    "@eslint/js": "^9.38.0",
     "@playwright/test": "^1.56.1",
-    "@types/node": "^22.0.0"
+    "@types/node": "^22.0.0",
+    "eslint": "^9.38.0",
+    "globals": "^15.8.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.15.0"
   }
 }

@@ -10,6 +10,7 @@ import type { FormInstance } from 'antd';
  * });
  */
 export function useAntForm<T>(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   schema: any, // Zod schema
   onSubmit: (data: T) => Promise<void>
 ) {
@@ -29,18 +30,23 @@ export function useAntForm<T>(
       
       // Reset form po sukcesie
       form?.resetFields();
-    } catch (err: any) {
-      if (err.name === 'ZodError') {
+    } catch (err: unknown) {
+      if (err && typeof err === 'object' && 'name' in err && err.name === 'ZodError' && 'errors' in err) {
         setError('Błąd walidacji formularza');
         // Możesz też ustawić błędy bezpośrednio na polach formularza
         form?.setFields(
-          err.errors.map((e: any) => ({
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (err.errors as any[]).map((e: any) => ({
             name: e.path,
             errors: [e.message],
           }))
         );
       } else {
-        setError(err.message || 'Wystąpił błąd');
+        setError(
+          err && typeof err === 'object' && 'message' in err
+            ? String(err.message)
+            : 'Wystąpił błąd'
+        );
       }
     } finally {
       setLoading(false);

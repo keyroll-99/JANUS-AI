@@ -169,13 +169,14 @@ export class PortfolioService {
 
     const positions = new Map<string, PositionAccumulator>();
 
-    data.forEach((row: any) => {
-      const typeName = row.transaction_types?.name;
+    data.forEach((row: Record<string, unknown>) => {
+      const txTypes = row.transaction_types as { name: string } | undefined;
+      const typeName = txTypes?.name;
       if (!typeName || (typeName !== 'BUY' && typeName !== 'SELL')) {
         return;
       }
 
-      const ticker: string | null = row.ticker;
+      const ticker = row.ticker as string | null;
       if (!ticker) {
         return;
       }
@@ -191,7 +192,7 @@ export class PortfolioService {
         typeof row.commission === 'number' ? row.commission : Number(row.commission || 0);
 
       const transactionDate = row.transaction_date as string | null;
-      const accountTypeId: number | null = row.account_type_id ?? null;
+      const accountTypeId = row.account_type_id as number | null;
 
       const key = `${accountTypeId ?? 'default'}|${ticker}`;
       let position = positions.get(key);
@@ -584,7 +585,7 @@ export class PortfolioService {
     const totalValue = investedValue + cashBalance;
 
     // Calculate change from previous day
-    let change = { value: 0, percentage: 0 };
+    const change = { value: 0, percentage: 0 };
     
     if (snapshots.length >= 2) {
       const previousSnapshot = snapshots[snapshots.length - 2];
