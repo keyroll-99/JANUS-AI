@@ -3,7 +3,7 @@
  * Handles fetching paginated analyses list and creating new analyses
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { message, Modal } from 'antd';
 import {
@@ -45,7 +45,7 @@ export const useAnalyses = (): UseAnalysesReturn => {
   /**
    * Pobiera paginowaną listę analiz
    */
-  const fetchAnalyses = async (page: number, limit: number) => {
+  const fetchAnalyses = useCallback(async (page: number, limit: number) => {
     setLoading(true);
     setError(null);
     try {
@@ -59,7 +59,7 @@ export const useAnalyses = (): UseAnalysesReturn => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   /**
    * Inicjuje nową analizę AI
